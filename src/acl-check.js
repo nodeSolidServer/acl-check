@@ -20,7 +20,7 @@ function publisherTrustedApp (kb, doc, aclDoc, modesRequired, origin, docAuths) 
   // modesRequired.every(mode => appAuths.some(auth => kb.holds(auth, ACL('mode'), mode, aclDoc)))
 }
 
-function aclCheck (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
+function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
   var auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
   if (directory) {
     auths = auths.concat(null, (ACL('defaultForNew'), directory)) // Deprecated but keep for ages
@@ -46,7 +46,7 @@ function aclCheck (kb, doc, directory, aclDoc, agent, modesRequired, origin, tru
   )
 }
 
-function aclCheck1 (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
+function checkAccess1 (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
   var auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
   if (directory) {
     auths = auths.concat(null, (ACL('defaultForNew'), doc)) // Deprecated but keep for ages
@@ -72,7 +72,7 @@ function aclCheck1 (kb, doc, directory, aclDoc, agent, modesRequired, origin, tr
   )
 }
 
-function aclCheck0 (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
+function checkAccess0 (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
   var auths = kb.each(null, ACL('accessTo'), doc)
   if (directory) {
     auths = auths.concat(null, (ACL('defaultForNew'), doc)) // Deprecated but keep for ages
@@ -91,7 +91,7 @@ function aclCheck0 (kb, doc, directory, aclDoc, agent, modesRequired, origin, tr
   )
 }
 
-module.exports.aclCheck = aclCheck
-module.exports.aclCheck0 = aclCheck0
-module.exports.aclCheck1 = aclCheck1
+module.exports.checkAccess = checkAccess
+module.exports.checkAccess0 = checkAccess0
+module.exports.checkAccess1 = checkAccess1
 module.exports.publisherTrustedApp = publisherTrustedApp

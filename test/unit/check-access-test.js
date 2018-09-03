@@ -1,16 +1,51 @@
 'use strict'
 
 const test = require('tape')
-const Authorization = require('../../src/authorization')
-const { acl } = require('../../src/modes')
-const PermissionSet = require('../../src/permission-set')
-const aliceWebId = 'https://alice.example.com/#me'
+// const Authorization = require('../../src/authorization')
+// const { acl } = require('../../src/modes')
+// const PermissionSet = require('../../src/permission-set')
+const aclLogic = require('../../src/acl-check')
+const $rdf = require('rdflib')
 
-test('PermissionSet checkAccess() test - Append access', t => {
+const ACL = $rdf.Namespace('http://www.w3.org/ns/auth/acl#')
+
+const prefixes = `@prefix acl: <http://www.w3.org/ns/auth/acl#> .
+@prefix alice: <https://alice.example.com/>.
+`
+const aliceWebId = 'https://alice.example.com/#me'
+const alice = $rdf.sym('https://alice.example.com/#me')
+const bob = $rdf.sym('https://bob.example.com/#me')
+
+test('aclCheck checkAccess() test - Append access', t => {
   let resourceUrl = 'https://alice.example.com/docs/file1'
+  let resource = $rdf.sym(resourceUrl)
   let aclUrl = 'https://alice.example.com/docs/.acl'
-  let ps = new PermissionSet(resourceUrl, aclUrl)
-  ps.addPermission(aliceWebId, acl.WRITE)
+  let aclDoc = $rdf.sym(aclUrl)
+  // let ps = new PermissionSet(resourceUrl, aclUrl)
+  // ps.addPermission(aliceWebId, acl.WRITE)
+
+  const kb = $rdf.graph() // Quad store
+  const ACLtext = prefixes +
+  ` <#> a acl:Authorization;
+    acl:mode acl:Read;
+    acl:agent alice:me;
+    acl:accessTo <${resourceUrl}> .
+  `
+  $rdf.parse(ACLtext, kb, aclUrl, 'text/turtle')
+
+  const agent = alice
+  const directory = null
+  const modesRequired = [ ACL('Append')]
+  const trustedOrigins = null
+  const origin = null
+
+  const result = aclLogic.checkAccess(kb, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
+  if (result) {
+    t.ok(result, 'Alice should have Append access implied by Write access')
+  } else {
+    t.fail('Alice should have Append access implied by Write access')
+  }
+  /*
   ps.checkAccess(resourceUrl, aliceWebId, acl.APPEND)
     .then(result => {
       t.ok(result, 'Alice should have Append access implied by Write access')
@@ -18,31 +53,48 @@ test('PermissionSet checkAccess() test - Append access', t => {
     .catch(err => {
       t.fail(err)
     })
+  */
   t.end()
 })
 
 test('PermissionSet checkAccess() test - accessTo', function (t) {
   let containerUrl = 'https://alice.example.com/docs/'
+  let container = $rdf.sym(containerUrl)
   let containerAclUrl = 'https://alice.example.com/docs/.acl'
-  let ps = new PermissionSet(containerUrl, containerAclUrl)
-  ps.addPermission(aliceWebId, [acl.READ, acl.WRITE])
+  let containerAcl = $rdf.sym(containerAclUrl)
+  // let ps = new PermissionSet(containerUrl, containerAclUrl)
+  // ps.addPermission(aliceWebId, [acl.READ, acl.WRITE])
 
-  ps.checkAccess(containerUrl, aliceWebId, acl.WRITE)
-    .then(result => {
-      t.ok(result, 'Alice should have write access to container')
-    })
-    .catch(err => {
-      console.log(err)
-      t.fail(err)
-    })
-  ps.checkAccess(containerUrl, 'https://someone.else.com/', acl.WRITE)
-    .then(result => {
-      t.notOk(result, 'Another user should have no write access')
-    })
-    .catch(err => {
-      console.log(err)
-      t.fail(err)
-    })
+  const kb = $rdf.graph() // Quad store
+  const ACLtext = prefixes +
+  ` <#> a acl:Authorization;
+    acl:mode acl:Read, acl:Write;
+    acl:agent alice:me;
+    acl:accessTo <${containerUrl}> .
+  `
+  $rdf.parse(ACLtext, kb, containerAclUrl, 'text/turtle')
+
+  var result = aclLogic.checkAccess(kb, container, null, containerAcl, alice, [ ACL('Read')])
+  if (result) {
+    t.ok(result, 'Alice should have Read acces')
+  } else {
+    t.fail('Alice s....')
+  }
+
+  result = aclLogic.checkAccess(kb, container, null, containerAcl, alice, [ ACL('Write')])
+  if (result) {
+    t.ok(result, 'Alice should have Write acces')
+  } else {
+    t.fail('Alice s....')
+  }
+
+  result = aclLogic.checkAccess(kb, container, null, containerAcl, bob, [ ACL('Write')])
+  if (!result) {
+    t.ok(result, 'Bob should not have Write acces')
+  } else {
+    t.fail('Alice s....')
+  }
+
   t.end()
 })
 
