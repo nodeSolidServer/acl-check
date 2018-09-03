@@ -1,0 +1,59 @@
+{
+  "name": "acl-test",
+  "version": "0.0.1",
+  "engines": {
+    "node": "^6.0"
+  },
+  "description": "Web Access Control check access function",
+  "main": "./lib/index",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "babel src -d lib",
+    "preversion": "npm test",
+    "postversion": "git push --follow-tags",
+    "prepublish": "npm test && npm run build",
+    "standard": "standard *.js src/*.js",
+    "tape": "tape test/unit/*.js",
+    "test": "npm run standard && npm run tape"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/solid/acl-check"
+  },
+  "keywords": [
+    "acl",
+    "access",
+    "control",
+    "WAC",
+    "solid",
+    "decentralized",
+    "web",
+    "rdf",
+    "ldp",
+    "linked",
+    "data"
+  ],
+  "author": "Tim Berners-Lee <timbl@w3.org>",
+  "contributor": "Dmitri Zagidulin <dzagidulin@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/solid/acl-check/issues"
+  },
+  "homepage": "https://github.com/solid/acl-check",
+  "dependencies": {
+    "solid-namespace": "0.1.0",
+    "rdflib": "^0.12.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-preset-es2015": "^6.14.0",
+    "sinon": "^1.17.6",
+    "standard": "^5.4.1",
+    "tape": "^4.4.0"
+  },
+  "standard": {
+    "globals": []
+  }
+}
