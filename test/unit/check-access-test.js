@@ -80,17 +80,53 @@ test('acl-check checkAccess() test - default/inherited', function (t) {
   let file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
   var result
   const store = $rdf.graph()
+  /*
   let ACLtext = prefixes + ` <#auth> a acl:Authorization;
     acl:mode acl:Read;
     acl:agent bob:me;
     acl:accessTo <${file1.uri}> .
 `
   $rdf.parse(ACLtext, store, containerAcl.uri, 'text/turtle')
-
+*/
   let containerAclText = prefixes + ` <#auth> a acl:Authorization;
       acl:mode acl:Read;
       acl:agent alice:me;
       acl:default <${container.uri}> .
+`
+  $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
+
+  result = aclLogic.checkAccess(store, file1, container, containerAcl, alice, [ ACL('Read')])
+  t.ok(result, 'Alice should have Read acces inherited')
+
+  result = aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Read')])
+  t.ok(result, 'Alice should have Read acces inherited 2')
+
+  result = !aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Write')])
+  t.ok(result, 'Alice should NOT have Write acces inherited')
+
+  t.end()
+})
+
+// Inheriting permissions from directory defaults -- OLD version defaultForNew
+test('acl-check checkAccess() test - default/inherited', function (t) {
+  let container = $rdf.sym('https://alice.example.com/docs/')
+  let containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
+  let file1 = $rdf.sym('https://alice.example.com/docs/file1')
+  let file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
+  var result
+  const store = $rdf.graph()
+  /*
+  let ACLtext = prefixes + ` <#auth> a acl:Authorization;
+    acl:mode acl:Read;
+    acl:agent bob:me;
+    acl:accessTo <${file1.uri}> .
+`
+  $rdf.parse(ACLtext, store, containerAcl.uri, 'text/turtle')
+*/
+  let containerAclText = prefixes + ` <#auth> a acl:Authorization;
+      acl:mode acl:Read;
+      acl:agent alice:me;
+      acl:defaultForNew <${container.uri}> .
 `
   $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
 
@@ -171,20 +207,21 @@ test('acl-check checkAccess() test - default/inherited', function (t) {
   let file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
   var result
   const store = $rdf.graph()
+  /*
   let ACLtext = prefixes + ` <#auth> a acl:Authorization;
     acl:mode acl:Read;
     acl:agent bob:me;
     acl:accessTo <${file1.uri}> .
-`
+    `
   $rdf.parse(ACLtext, store, containerAcl.uri, 'text/turtle')
-
+*/
   let containerAclText = prefixes + ` <#auth> a acl:Authorization;
       acl:mode acl:Read;
       acl:agentClass foaf:Agent;
       acl:default <${container.uri}> .
 `
   $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
-
+  console.log('@@' + containerAclText + '@@@')
   result = aclLogic.checkAccess(store, file1, container, containerAcl, alice, [ ACL('Read')])
   t.ok(result, 'Alice should have Read acces inherited - Public')
 

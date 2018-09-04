@@ -20,19 +20,43 @@ function publisherTrustedApp (kb, doc, aclDoc, modesRequired, origin, docAuths) 
   // modesRequired.every(mode => appAuths.some(auth => kb.holds(auth, ACL('mode'), mode, aclDoc)))
 }
 
+/* Function checkAccess
+** @param kb A quadstore
+** @param doc the resource (A named node) or directory for which ACL applies
+*/
 function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
-  var auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
-  console.log(`checkAccess: checking access to ${doc} by ${agent}`)
-  if (auths.length) console.log(`   ${auths.length} authentications apply directly to doc`)
-  if (directory) {
-    auths = auths.concat(null, (ACL('defaultForNew'), directory)) // Deprecated but keep for ages
-    auths = auths.concat(null, (ACL('default'), directory))
-    if (auths.length) console.log(`   ${auths.length} total relevant authentications`)
+  let modeURIs = modesAllowed(kb, doc, directory, aclDoc, agent, origin, trustedOrigins)
+  let ok = true
+  console.log(`CheckAccess: modeURIs: ${modeURIs.size}`)
+  modesRequired.forEach(mode => {
+    console.log(` checking ` + mode)
+    if (modeURIs.has(mode.uri)) {
+      console.log('  Mode required and allowed:' + mode)
+    } else if (mode.sameTerm(ACL('Append')) && modeURIs.has(ACL('Write').uri)) {
+      console.log('  Append required and Write allowed. OK')
+    } else {
+      console.log('  MODE REQUIRED NOT ALLOWED:' + mode)
+      ok = false
+    }
+  })
+  return ok
+}
+
+function modesAllowed (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
+  console.log(`modesAllowed: checking access to ${doc} by ${agent}`)
+  var auths
+  if (!directory) { // Normal case, ACL for a file
+    auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
+    console.log(`   ${auths.length} direct authentications about ${doc}`)
+  } else {
+    auths = kb.each(null, ACL('default'), directory, null)
+    auths = auths.concat(kb.each(null, ACL('defaultForNew'), directory, null)) // Deprecated but keep for ages
+    console.log(`   ${auths.length}  default authentications about ${directory} in ${aclDoc}`)
   }
   if (origin && trustedOrigins && trustedOrigins.includes(origin)) {
     console.log('Origin ' + origin + ' is trusted')
     origin = null // stop worrying about origin
-    console.log(`  checkAccess: Origin ${origin} is trusted.`)
+    console.log(`  modesAllowed: Origin ${origin} is trusted.`)
   }
   function agentOrGroupOK (auth, agent) {
     console.log(`   Checking auth ${auth} with agent ${agent}`)
@@ -64,37 +88,37 @@ function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, 
   function originOK (auth, origin) {
     return kb.holds(auth, ACL('origin'), origin, aclDoc)
   }
-  let allowed = modesRequired.every(mode => {
-    console.log(' Checking needed mode ' + mode)
-    let modeAuths = auths.filter(auth => kb.holds(auth, ACL('mode'), mode, aclDoc))
-    if (mode.sameTerm(ACL('Append'))) { // If you want append, Write will work too.
-      let writeAuths = auths.filter(auth => kb.holds(auth, ACL('mode'), ACL('Write'), aclDoc))
-      console.log(`   Authorizations that work with Write: ${writeAuths.length}`)
-      modeAuths = modeAuths.concat(writeAuths)
+
+  function agentAndAppOK (auth) {
+    if (!agentOrGroupOK(auth, agent)) {
+      console.log('     The agent/group/public check fails')
+      return false
     }
-    console.log(`   Authorizations that work with mode: ${modeAuths.length}`)
-    let modeResult = modeAuths.some(auth => {
-      if (!agentOrGroupOK(auth, agent)) {
-        console.log('     The agent/group/public check fails')
-        return false
-      }
-      if (!origin) {
-        console.log('     Origin check not needed: no origin.')
-        return true
-      }
-      if (originOK(auth, origin)) {
-        console.log('     Origin check succeeded.')
-        return true
-      }
-      console.log('     Origin check FAILED. Origin not tested.')
+    if (!origin) {
+      console.log('     Origin check not needed: no origin.')
       return true
+    }
+    if (originOK(auth, origin)) {
+      console.log('     Origin check succeeded.')
+      return true
+    }
+    console.log('     Origin check FAILED. Origin not trusted.')
+    return false // @@ look for other trusted apps
+  }
+
+  auths = auths.filter(agentAndAppOK)
+  console.log('  auths with good who and what: ' + auths.length)
+  var modeURIs = new Set()
+  auths.forEach(auth => {
+    let modes = kb.each(auth, ACL('mode'), null, aclDoc)
+    modes.forEach(mode => {
+      console.log('      Mode allowed: ' + mode)
+      modeURIs.add(mode.uri)
     })
-    console.log(' Mode result ' + modeResult)
-    return modeResult
   })
-  console.log('Overall result:' + allowed)
-  return allowed
+  return modeURIs
 }
 
 module.exports.checkAccess = checkAccess
+module.exports.modesAllowed = modesAllowed
 module.exports.publisherTrustedApp = publisherTrustedApp

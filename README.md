@@ -25,9 +25,13 @@ let dirAclDoc = $rdf.sym('https://alice.example.com/stuff/')
 let agent = $rdf.sym('https://alice.example.com/card.ttl#me')
 let modesRequired = [ ACL('Read'), ACL('Write'), ACL('Control') ]
 
-await fetcher.load([aclDoc, dirAclDoc]) // Load the ACL documents into kb
+await fetcher.load(aclDoc) // Load the ACL documents into kb
 
-let allow = aclCheck.checkAccess(kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
+let allow = aclCheck.checkAccess(kb, resource, null, aclDoc, agent, modesRequired, origin, trustedOrigins)
+
+// When there is no direct ACL file, find the closest container ACL file in the tree above then...
+await fetcher.load(dirAclDoc) // Load the directory ACL documents into kb
+let allow = aclCheck.checkAccess(kb, resource, directory, dirAclDoc, agent, modesRequired, origin, trustedOrigins)
 
 console.log('Access allowed? ' + allow)
 // OWTTE
