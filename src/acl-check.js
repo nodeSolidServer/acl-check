@@ -22,76 +22,79 @@ function publisherTrustedApp (kb, doc, aclDoc, modesRequired, origin, docAuths) 
 
 function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
   var auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
+  console.log(`checkAccess: checking access to ${doc} by ${agent}`)
+  if (auths.length) console.log(`   ${auths.length} authentications apply directly to doc`)
   if (directory) {
     auths = auths.concat(null, (ACL('defaultForNew'), directory)) // Deprecated but keep for ages
     auths = auths.concat(null, (ACL('default'), directory))
+    if (auths.length) console.log(`   ${auths.length} total relevant authentications`)
   }
   if (origin && trustedOrigins && trustedOrigins.includes(origin)) {
     console.log('Origin ' + origin + ' is trusted')
     origin = null // stop worrying about origin
+    console.log(`  checkAccess: Origin ${origin} is trusted.`)
   }
   function agentOrGroupOK (auth, agent) {
-    if (kb.holds(auth, ACL('accessToClass'), FOAF('Agent'), aclDoc)) return true
-    if (!agent) return false
-    return kb.holds(auth, ACL('accessToClass'), ACL('AuthenticatedAgent'), aclDoc) ||
-      kb.holds(auth, ACL('agent'), agent, aclDoc) ||
-      kb.each(auth, ACL('accessToGroup'), null, aclDoc).some(group => kb.holds(agent, VCARD('member'), group, group.doc()))
-  }
+    console.log(`   Checking auth ${auth} with agent ${agent}`)
+    if (kb.holds(auth, ACL('accessToClass'), FOAF('Agent'), aclDoc)) {
+      console.log(`    Agent or group: Ok, its public.`)
+      return true
+    }
+    if (!agent) {
+      console.log(`    Agent or group: Fail: not public and not logged on.`)
+      return false
+    }
+    if (kb.holds(auth, ACL('accessToClass'), ACL('AuthenticatedAgent'), aclDoc)) {
+      console.log('    AuthenticatedAgent: logged in, looks good')
+      return true
+    }
+    if (kb.holds(auth, ACL('agent'), agent, aclDoc) ) {
+      console.log('    Agent explicitly authenticated.')
+      return true
+    }
+    if (kb.each(auth, ACL('accessToGroup'), null, aclDoc).some(
+      group => kb.holds(agent, VCARD('member'), group, group.doc()))) {
+      console.log('    Agent is member of group which has accees.')
+      return true
+    }
+    console.log('    Agent or group access fails for this authentication.')
+    return false
+  } // Agent or group
+
   function originOK (auth, origin) {
     return kb.holds(auth, ACL('origin'), origin, aclDoc)
   }
-  return modesRequired.every(mode =>
-    auths.filter(auth => kb.holds(auth, ACL('mode'), mode, aclDoc)).some(
-      auth => (agentOrGroupOK(auth, agent)) && (!origin || originOK(auth, origin)))
-  )
-}
-
-function checkAccess1 (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
-  var auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
-  if (directory) {
-    auths = auths.concat(null, (ACL('defaultForNew'), doc)) // Deprecated but keep for ages
-    auths = auths.concat(null, (ACL('default'), doc))
-  }
-  if (origin && trustedOrigins && trustedOrigins.includes(origin)) {
-    console.log('Origin ' + origin + ' is trusted')
-    origin = null // stop worrying about origin
-  }
-  function agentOrGroupOK (auth, agent) {
-    if (kb.holds(auth, ACL('accessToClass'), FOAF('Agent'), aclDoc)) return true
-    if (!agent) return false
-    return kb.holds(auth, ACL('accessToClass'), ACL('AuthenticatedAgent'), aclDoc) ||
-      kb.holds(auth, ACL('agent'), agent, aclDoc) ||
-      kb.each(auth, ACL('accessToGroup'), null, aclDoc).some(group => kb.holds(agent, VCARD('member'), group, group.doc()))
-  }
-  function originOK (auth, origin) {
-    return kb.holds(auth, ACL('origin'), origin, aclDoc)
-  }
-  return modesRequired.every(mode =>
-    auths.filter(auth => kb.holds(auth, ACL('mode'), mode, aclDoc)).some(
-      auth => (agentOrGroupOK(auth, agent)) && (!origin || originOK(auth, origin)))
-  )
-}
-
-function checkAccess0 (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
-  var auths = kb.each(null, ACL('accessTo'), doc)
-  if (directory) {
-    auths = auths.concat(null, (ACL('defaultForNew'), doc)) // Deprecated but keep for ages
-    auths = auths.concat(null, (ACL('default'), doc))
-  }
-  if (origin && trustedOrigins && trustedOrigins.includes(origin)) {
-    console.log('Origin ' + origin + ' is trusted')
-    origin = null // stop worrying about origin
-  }
-  return modesRequired.every(mode =>
-     auths.some(auth =>
-       kb.holds(auth, ACL('agent'), agent) && kb.holds(auth, ACL('mode'), mode)) &&
-       (!origin ||
-      auths.some(auth => kb.holds(auth, ACL('origin'), origin) && kb.holds(auth, ACL('mode'), mode))
-    )
-  )
+  let allowed = modesRequired.every(mode => {
+    console.log(' Checking needed mode ' + mode)
+    let modeAuths = auths.filter(auth => kb.holds(auth, ACL('mode'), mode, aclDoc))
+    if (mode.sameTerm(ACL('Append'))) { // If you want append, Write will work too.
+      let writeAuths = auths.filter(auth => kb.holds(auth, ACL('mode'), ACL('Write'), aclDoc))
+      console.log(`   Authorizations that work with Write: ${writeAuths.length}`)
+      modeAuths = modeAuths.concat(writeAuths)
+    }
+    console.log(`   Authorizations that work with mode: ${modeAuths.length}`)
+    let modeResult = modeAuths.some(auth => {
+      if (!agentOrGroupOK(auth, agent)) {
+        console.log('     The agent/group/public check fails')
+        return false
+      }
+      if (!origin) {
+        console.log('     Origin check not needed: no origin.')
+        return true
+      }
+      if (originOK(auth, origin)) {
+        console.log('     Origin check succeeded.')
+        return true
+      }
+      console.log('     Origin check FAILED. Origin not tested.')
+      return true
+    })
+    console.log(' Mode result ' + modeResult)
+    return modeResult
+  })
+  console.log('Overall result:' + allowed)
+  return allowed
 }
 
 module.exports.checkAccess = checkAccess
-module.exports.checkAccess0 = checkAccess0
-module.exports.checkAccess1 = checkAccess1
 module.exports.publisherTrustedApp = publisherTrustedApp
