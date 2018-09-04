@@ -41,11 +41,7 @@ test('aclCheck checkAccess() test - Append access implied by Write acecss', t =>
   const origin = null
 
   const result = aclLogic.checkAccess(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
-  if (result) {
-    t.ok(result, 'Alice should have Append access implied by Write access')
-  } else {
-    t.fail('Alice should have Append access implied by Write access')
-  }
+  t.ok(result, 'Alice should have Append access implied by Write access')
   t.end()
 })
 
@@ -65,25 +61,13 @@ test('acl-check checkAccess() test - accessTo', function (t) {
   $rdf.parse(ACLtext, store, containerAclUrl, 'text/turtle')
 
   var result = aclLogic.checkAccess(store, container, null, containerAcl, alice, [ ACL('Read')])
-  if (result) {
-    t.ok(result, 'Alice should have Read acces')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Alice should have Read acces')
 
   result = aclLogic.checkAccess(store, container, null, containerAcl, alice, [ ACL('Write')])
-  if (result) {
-    t.ok(result, 'Alice should have Write acces')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Alice should have Write acces')
 
-  result = aclLogic.checkAccess(store, container, null, containerAcl, bob, [ ACL('Write')])
-  if (!result) {
-    t.ok(result, 'Bob should not have Write acces')
-  } else {
-    t.fail('Alice s....')
-  }
+  result = !aclLogic.checkAccess(store, container, null, containerAcl, bob, [ ACL('Write')])
+  t.ok(result, 'Bob Should not have access')
 
   t.end()
 })
@@ -111,30 +95,18 @@ test('acl-check checkAccess() test - default/inherited', function (t) {
   $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
 
   result = aclLogic.checkAccess(store, file1, container, containerAcl, alice, [ ACL('Read')])
-  if (result) {
-    t.ok(result, 'Alice should have Read acces inherited')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Alice should have Read acces inherited')
 
   result = aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Read')])
-  if (result) {
-    t.ok(result, 'Alice should have Read acces inherited 2')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Alice should have Read acces inherited 2')
 
-  result = aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Read')])
-  if (result) {
-    t.ok(result, 'Mallory should NOT have Read acces inherited')
-  } else {
-    t.fail('Alice s....')
-  }
+  result = !aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Write')])
+  t.ok(result, 'Alice should NOT have Write acces inherited')
 
   t.end()
 })
 
-// Public access VESRIONS OF THESE
+///////////////////////////////////////// Public access VESRIONS OF THESE
 // Append access implied by Write acecss -PUBLIC
 test('aclCheck checkAccess() test - Append access implied by Public Write acecss', t => {
   let resource = $rdf.sym('https://alice.example.com/docs/file1')
@@ -144,24 +116,17 @@ test('aclCheck checkAccess() test - Append access implied by Public Write acecss
   const store = $rdf.graph() // Quad store
   const ACLtext = prefixes +
   ` <#auth> a acl:Authorization;
-    acl:mode acl:Read;
+    acl:mode acl:Write;
     acl:agentClass foaf:Agent;
     acl:accessTo <${resource.uri}> .
   `
   $rdf.parse(ACLtext, store, aclUrl, 'text/turtle')
 
-  const agent = alice
-  const directory = null
   const modesRequired = [ ACL('Append')]
-  const trustedOrigins = null
-  const origin = null
 
-  const result = aclLogic.checkAccess(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
-  if (result) {
-    t.ok(result, 'Alice should have Append access implied by Write access - Public')
-  } else {
-    t.fail('Alice should have Append access implied by Write access - Public')
-  }
+  let result = aclLogic.checkAccess(store, resource, null, aclDoc, alice, modesRequired)
+  t.ok(result, 'Alice should have Append access implied by Write access - Public')
+
   t.end()
 })
 
@@ -181,39 +146,19 @@ test('acl-check checkAccess() test - accessTo', function (t) {
   $rdf.parse(ACLtext, store, containerAclUrl, 'text/turtle')
 
   var result = aclLogic.checkAccess(store, container, null, containerAcl, alice, [ ACL('Read')])
-  if (result) {
-    t.ok(result, 'Alice should have Read acces - Public')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Alice should have Read acces - Public')
 
   result = aclLogic.checkAccess(store, container, null, containerAcl, alice, [ ACL('Write')])
-  if (result) {
-    t.ok(result, 'Alice should have Write acces')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Alice should have Write acces')
 
   var result = aclLogic.checkAccess(store, container, null, containerAcl, null, [ ACL('Read')])
-  if (result) {
-    t.ok(result, 'Anonymous should have Read acces to public thing - Public')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Anonymous should have Read acces to public thing - Public')
 
   result = aclLogic.checkAccess(store, container, null, containerAcl, null, [ ACL('Write')])
-  if (result) {
-    t.ok(result, 'Anonymous should have Write acces - Public')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Anonymous should have Write acces - Public')
 
   result = aclLogic.checkAccess(store, container, null, containerAcl, bob, [ ACL('Write')])
-  if (result) {
-    t.ok(result, 'Bob should have Write acces to public write - Public')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Bob should have Write acces to public write - Public')
 
   t.end()
 })
@@ -241,25 +186,104 @@ test('acl-check checkAccess() test - default/inherited', function (t) {
   $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
 
   result = aclLogic.checkAccess(store, file1, container, containerAcl, alice, [ ACL('Read')])
-  if (result) {
-    t.ok(result, 'Alice should have Read acces inherited - Public')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Alice should have Read acces inherited - Public')
 
   result = aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Read')])
-  if (result) {
-    t.ok(result, 'Alice should have Read acces inherited 2  - Public')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Alice should have Read acces inherited 2  - Public')
+
+  result = !aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Write')])
+  t.ok(result, 'Alice should NOT have write acces inherited  - Public')
+
+  t.end()
+})
+
+////////////////////////////  Non-anonymoud versions
+// Append access implied by Write acecss -PUBLIC
+test('aclCheck checkAccess() test - Append access implied by Public Write acecss', t => {
+  let resource = $rdf.sym('https://alice.example.com/docs/file1')
+  let aclUrl = 'https://alice.example.com/docs/.acl'
+  let aclDoc = $rdf.sym(aclUrl)
+
+  const store = $rdf.graph() // Quad store
+  const ACLtext = prefixes +
+  ` <#auth> a acl:Authorization;
+    acl:mode acl:Write;
+    acl:agentClass acl:AuthenticatedAgent;
+    acl:accessTo <${resource.uri}> .
+  `
+  $rdf.parse(ACLtext, store, aclUrl, 'text/turtle')
+
+  const modesRequired = [ ACL('Append')]
+
+  let result = aclLogic.checkAccess(store, resource, null, aclDoc, alice, modesRequired)
+  t.ok(result, 'Alice should have Append access implied by Write access - AuthenticatedAgent')
+
+  t.end()
+})
+
+// Straight ACL access test
+test('acl-check checkAccess() test - accessTo', function (t) {
+  let container = $rdf.sym('https://alice.example.com/docs/')
+  let containerAclUrl = 'https://alice.example.com/docs/.acl'
+  let containerAcl = $rdf.sym(containerAclUrl)
+
+  const store = $rdf.graph() // Quad store
+  const ACLtext = prefixes +
+  ` <#auth> a acl:Authorization;
+    acl:mode acl:Read, acl:Write;
+    acl:agentClass acl:AuthenticatedAgent;
+    acl:accessTo <${container.uri}> .
+  `
+  $rdf.parse(ACLtext, store, containerAclUrl, 'text/turtle')
+
+  var result = aclLogic.checkAccess(store, container, null, containerAcl, alice, [ ACL('Read')])
+  t.ok(result, 'Alice should have Read acces - AuthenticatedAgent')
+
+  result = aclLogic.checkAccess(store, container, null, containerAcl, alice, [ ACL('Write')])
+  t.ok(result, 'Alice should have Write acces')
+
+  var result = !aclLogic.checkAccess(store, container, null, containerAcl, null, [ ACL('Read')])
+  t.ok(result, 'Anonymous should NOT have Read acces to public thing - AuthenticatedAgent')
+
+  result = !aclLogic.checkAccess(store, container, null, containerAcl, null, [ ACL('Write')])
+  t.ok(result, 'Anonymous should NOT have Write acces - AuthenticatedAgent')
+
+  result = aclLogic.checkAccess(store, container, null, containerAcl, bob, [ ACL('Write')])
+  t.ok(result, 'Bob should have Write acces to public write - AuthenticatedAgent')
+
+  t.end()
+})
+
+// Inheriting permissions from directory defaults
+test('acl-check checkAccess() test - default/inherited', function (t) {
+  let container = $rdf.sym('https://alice.example.com/docs/')
+  let containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
+  let file1 = $rdf.sym('https://alice.example.com/docs/file1')
+  let file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
+  var result
+  const store = $rdf.graph()
+  let ACLtext = prefixes + ` <#auth> a acl:Authorization;
+    acl:mode acl:Read;
+    acl:agent bob:me;
+    acl:accessTo <${file1.uri}> .
+`
+  $rdf.parse(ACLtext, store, containerAcl.uri, 'text/turtle')
+
+  let containerAclText = prefixes + ` <#auth> a acl:Authorization;
+      acl:mode acl:Read;
+      acl:agentClass acl:AuthenticatedAgent;
+      acl:default <${container.uri}> .
+`
+  $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
+
+  result = aclLogic.checkAccess(store, file1, container, containerAcl, alice, [ ACL('Read')])
+  t.ok(result, 'Alice should have Read acces inherited - AuthenticatedAgent')
 
   result = aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Read')])
-  if (result) {
-    t.ok(result, 'Mallory should NOT have Read acces inherited  - Public')
-  } else {
-    t.fail('Alice s....')
-  }
+  t.ok(result, 'Alice should have Read acces inherited 2  - AuthenticatedAgent')
+
+  result = !aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Write')])
+  t.ok(result, 'Alice should NOT have write acces inherited  - AuthenticatedAgent')
 
   t.end()
 })

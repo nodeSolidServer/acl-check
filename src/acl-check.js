@@ -36,7 +36,7 @@ function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, 
   }
   function agentOrGroupOK (auth, agent) {
     console.log(`   Checking auth ${auth} with agent ${agent}`)
-    if (kb.holds(auth, ACL('accessToClass'), FOAF('Agent'), aclDoc)) {
+    if (kb.holds(auth, ACL('agentClass'), FOAF('Agent'), aclDoc)) {
       console.log(`    Agent or group: Ok, its public.`)
       return true
     }
@@ -44,11 +44,11 @@ function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, 
       console.log(`    Agent or group: Fail: not public and not logged on.`)
       return false
     }
-    if (kb.holds(auth, ACL('accessToClass'), ACL('AuthenticatedAgent'), aclDoc)) {
+    if (kb.holds(auth, ACL('agentClass'), ACL('AuthenticatedAgent'), aclDoc)) {
       console.log('    AuthenticatedAgent: logged in, looks good')
       return true
     }
-    if (kb.holds(auth, ACL('agent'), agent, aclDoc) ) {
+    if (kb.holds(auth, ACL('agent'), agent, aclDoc)) {
       console.log('    Agent explicitly authenticated.')
       return true
     }
