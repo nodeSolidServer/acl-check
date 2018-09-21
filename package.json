@@ -15,7 +15,7 @@
     "postversion": "git push --follow-tags",
     "prepublish": "npm test && npm run build",
     "standard": "standard *.js src/*.js",
-    "tape": "tape test/unit/check-access-test.js",
+    "tape": "tape test/unit/check-access-test.js test/unit/access-denied-test.js",
     "test": "npm run standard && npm run tape"
   },
   "repository": {

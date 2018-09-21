@@ -124,5 +124,6 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, modesRequired, origin,
 }
 
 module.exports.checkAccess = checkAccess
+module.exports.accessDenied = accessDenied
 module.exports.modesAllowed = modesAllowed
 module.exports.publisherTrustedApp = publisherTrustedApp
