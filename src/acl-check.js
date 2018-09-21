@@ -20,13 +20,9 @@ function publisherTrustedApp (kb, doc, aclDoc, modesRequired, origin, docAuths) 
   // modesRequired.every(mode => appAuths.some(auth => kb.holds(auth, ACL('mode'), mode, aclDoc)))
 }
 
-/* Function checkAccess
-** @param kb A quadstore
-** @param doc the resource (A named node) or directory for which ACL applies
-*/
-function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
+function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
   let modeURIs = modesAllowed(kb, doc, directory, aclDoc, agent, origin, trustedOrigins)
-  let ok = true
+  let ok = false
   console.log(`CheckAccess: modeURIs: ${modeURIs.size}`)
   modesRequired.forEach(mode => {
     console.log(` checking ` + mode)
@@ -36,10 +32,18 @@ function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, 
       console.log('  Append required and Write allowed. OK')
     } else {
       console.log('  MODE REQUIRED NOT ALLOWED:' + mode)
-      ok = false
+      ok = true
     }
   })
   return ok
+}
+
+/* Function checkAccess
+** @param kb A quadstore
+** @param doc the resource (A named node) or directory for which ACL applies
+*/
+function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
+  return !Boolean(accessDenied(kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins))
 }
 
 function modesAllowed (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
