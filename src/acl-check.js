@@ -21,9 +21,10 @@ function publisherTrustedApp (kb, doc, aclDoc, modesRequired, origin, docAuths) 
 }
 
 function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
+  console.log(`accessDenied: checking access to ${doc} by ${agent} and origin ${origin}`)
   let modeURIs = modesAllowed(kb, doc, directory, aclDoc, agent, origin, trustedOrigins)
   let ok = false
-  console.log(`CheckAccess: modeURIs: ${modeURIs.size}`)
+  console.log(`accessDenied: modeURIs: ${modeURIs.size}`)
   modesRequired.forEach(mode => {
     console.log(` checking ` + mode)
     if (modeURIs.has(mode.uri)) {
@@ -46,8 +47,8 @@ function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, 
   return !Boolean(accessDenied(kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins))
 }
 
-function modesAllowed (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
-  console.log(`modesAllowed: checking access to ${doc} by ${agent}`)
+function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins) {
+  console.log(`modesAllowed: checking access to ${doc} by ${agent} and origin ${origin}`)
   var auths
   if (!directory) { // Normal case, ACL for a file
     auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
