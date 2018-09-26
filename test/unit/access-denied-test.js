@@ -17,7 +17,7 @@ const bob = $rdf.sym('https://bob.example.com/#me')
 const malory = $rdf.sym('https://someone.else.example.com/')
 
 // Append access implied by Write acecss
-test('aclCheck checkAccess() test - Append access implied by Write acecss', t => {
+test('aclCheck accessDenied() test - Append access implied by Write acecss', t => {
   let resource = $rdf.sym('https://alice.example.com/docs/file1')
   let aclUrl = 'https://alice.example.com/docs/.acl'
   let aclDoc = $rdf.sym(aclUrl)
@@ -43,7 +43,7 @@ test('aclCheck checkAccess() test - Append access implied by Write acecss', t =>
 })
 
 // Straight ACL access test
-test('acl-check checkAccess() test - accessTo', function (t) {
+test('acl-check accessDenied() test - accessTo', function (t) {
   let container = $rdf.sym('https://alice.example.com/docs/')
   let containerAclUrl = 'https://alice.example.com/docs/.acl'
   let containerAcl = $rdf.sym(containerAclUrl)
@@ -59,12 +59,13 @@ test('acl-check checkAccess() test - accessTo', function (t) {
 
   var result = aclLogic.accessDenied(store, container, null, containerAcl, bob, [ ACL('Write')])
   t.ok(result, 'Bob Should not have access')
+  t.equal(result, 'Forbidden', 'Correct reason')
 
   t.end()
 })
 
 // Inheriting permissions from directory defaults
-test('acl-check checkAccess() test - default/inherited', function (t) {
+test('acl-check accessDenied() test - default/inherited', function (t) {
   let container = $rdf.sym('https://alice.example.com/docs/')
   let containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
   let file1 = $rdf.sym('https://alice.example.com/docs/file1')
@@ -101,7 +102,7 @@ test('acl-check checkAccess() test - default/inherited', function (t) {
 
 
 // Inheriting permissions from directory defaults
-test('acl-check checkAccess() test - default/inherited', function (t) {
+test('acl-check accessDenied() test - default/inherited', function (t) {
   let container = $rdf.sym('https://alice.example.com/docs/')
   let containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
   let file1 = $rdf.sym('https://alice.example.com/docs/file1')
@@ -130,32 +131,8 @@ test('acl-check checkAccess() test - default/inherited', function (t) {
   t.end()
 })
 
-////////////////////////////  Non-anonymoud versions
-// Append access implied by Write acecss -PUBLIC
-test('aclCheck checkAccess() test - Append access implied by Public Write acecss', t => {
-  let resource = $rdf.sym('https://alice.example.com/docs/file1')
-  let aclUrl = 'https://alice.example.com/docs/.acl'
-  let aclDoc = $rdf.sym(aclUrl)
-
-  const store = $rdf.graph() // Quad store
-  const ACLtext = prefixes +
-  ` <#auth> a acl:Authorization;
-    acl:mode acl:Write;
-    acl:agentClass acl:AuthenticatedAgent;
-    acl:accessTo <${resource.uri}> .
-  `
-  $rdf.parse(ACLtext, store, aclUrl, 'text/turtle')
-
-  const modesRequired = [ ACL('Append')]
-
-  let result = aclLogic.checkAccess(store, resource, null, aclDoc, alice, modesRequired)
-  t.ok(result, 'Alice should have Append access implied by Write access - AuthenticatedAgent')
-
-  t.end()
-})
-
 // Straight ACL access test
-test('acl-check checkAccess() test - accessTo', function (t) {
+test('acl-check accessDenied() test - accessTo', function (t) {
   let container = $rdf.sym('https://alice.example.com/docs/')
   let containerAclUrl = 'https://alice.example.com/docs/.acl'
   let containerAcl = $rdf.sym(containerAclUrl)
@@ -182,7 +159,7 @@ test('acl-check checkAccess() test - accessTo', function (t) {
 })
 
 // Inheriting permissions from directory defaults
-test('acl-check checkAccess() test - default/inherited', function (t) {
+test('acl-check accessDenied() test - default/inherited', function (t) {
   let container = $rdf.sym('https://alice.example.com/docs/')
   let containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
   let file1 = $rdf.sym('https://alice.example.com/docs/file1')

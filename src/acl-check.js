@@ -32,7 +32,7 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
       console.log('  Append required and Write allowed. OK')
     } else {
       console.log('  MODE REQUIRED NOT ALLOWED:' + mode)
-      ok = true
+      ok = 'Forbidden'
     }
   })
   return ok
