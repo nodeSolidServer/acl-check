@@ -216,6 +216,138 @@ test('aclCheck accessDenied() test - Append access implied by Write acecss', t =
 
   result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
   t.ok(result, 'Mallorys app should not have Append access with false origin')
+  t.equal(result, 'Origin Unauthorized', 'Correct reason')
 
   t.end()
 })
+
+test('aclCheck accessDenied() test - Read, Write and Append', t => {
+  let resource = $rdf.sym('https://alice.example.com/docs/file1')
+  let aclUrl = 'https://alice.example.com/docs/.acl'
+  let aclDoc = $rdf.sym(aclUrl)
+
+  const origin = $rdf.sym('https://apps.example.com')
+  const malorigin = $rdf.sym('https://mallory.example.com')
+  const store = $rdf.graph() // Quad store
+  const ACLtext = prefixes +
+  ` <#auth> a acl:Authorization;
+    acl:mode acl:Write, acl:Read;
+    acl:agent alice:me;
+    acl:origin <${origin.uri}> ;
+    acl:accessTo <${resource.uri}> .
+  `
+  $rdf.parse(ACLtext, store, aclUrl, 'text/turtle')
+
+  const agent = alice
+  const directory = null
+  const modesRequired = [ ACL('Append'), ACL('Read'), ACL('Write') ]
+  const trustedOrigins = null
+
+
+  var result = !aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
+  t.ok(result, 'App should have  access with authorized origin')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Mallorys app should not have  access with false origin')
+  t.equal(result, 'Origin Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, bob, modesRequired, origin, trustedOrigins)
+  t.ok(result, 'Bob should not have  access with correct origin')
+  t.equal(result, 'User Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, bob, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Bob should not have  access with false origin')
+  t.equal(result, 'User Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Mallorys app should not have access with false origin')
+  t.equal(result, 'Origin Unauthorized', 'Correct reason')
+
+  t.end()
+})
+
+test('aclCheck accessDenied() test - Various access rules', t => {
+  let resource = $rdf.sym('https://alice.example.com/docs/file1')
+  let aclUrl = 'https://alice.example.com/docs/.acl'
+  let aclDoc = $rdf.sym(aclUrl)
+
+  const origin = $rdf.sym('https://apps.example.com')
+  const malorigin = $rdf.sym('https://mallory.example.com')
+  const store = $rdf.graph() // Quad store
+  const ACLtext = prefixes +
+  ` <#auth> a acl:Authorization;
+    acl:mode acl:Read;
+    acl:agent alice:me;
+    acl:origin <${origin.uri}> ;
+    acl:accessTo <${resource.uri}> .
+  `
+  $rdf.parse(ACLtext, store, aclUrl, 'text/turtle')
+
+  const agent = alice
+  const directory = null
+  var modesRequired = [ ACL('Read') ]
+  const trustedOrigins = null
+
+
+  var result = !aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
+  t.ok(result, 'App should have Write access with authorized origin, only fulfilled modes')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Mallorys app should not have Write access with false origin, only fulfilled modes')
+  t.equal(result, 'Origin Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, bob, modesRequired, origin, trustedOrigins)
+  t.ok(result, 'Bob should not have Write access with correct origin, only fulfilled modes')
+  t.equal(result, 'User Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, bob, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Bob should not have Write access with false origin, only fulfilled modes')
+  t.equal(result, 'User Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Mallorys app should not have Write access with false origin, only fulfilled modes')
+  t.equal(result, 'Origin Unauthorized', 'Correct reason')
+
+  modesRequired = [ ACL('Write') ]
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Mallorys app should not have Write access with false origin, invalid modes')
+  t.equal(result, 'Origin Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, bob, modesRequired, origin, trustedOrigins)
+  t.ok(result, 'Bob should not have Write access with correct origin, invalid modes')
+  t.equal(result, 'User Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, bob, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Bob should not have Write access with false origin, invalid modes')
+  t.equal(result, 'User Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Mallorys app should not have Write access with false origin, invalid modes')
+  t.equal(result, 'Origin Unauthorized', 'Correct reason')
+
+  modesRequired = [ ACL('Write'), ACL('Read') ]
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
+  t.ok(result, 'Alice should not have Read and Write access with authorized origin, both modes')
+  t.equal(result, 'User Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Mallorys app should not have Read and Write access with false origin, both modes')
+  t.equal(result, 'Origin Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, bob, modesRequired, origin, trustedOrigins)
+  t.ok(result, 'Bob should not have Read and Write access with correct origin, both modes')
+  t.equal(result, 'User Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, bob, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Bob should not have Read and Write access with false origin, both modes')
+  t.equal(result, 'User Unauthorized', 'Correct reason')
+
+  result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Mallorys app should not have Write access with false origin, both modes')
+  t.equal(result, 'Origin Unauthorized', 'Correct reason')
+
+  t.end()
+})
+
