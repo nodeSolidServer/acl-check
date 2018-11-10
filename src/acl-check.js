@@ -24,7 +24,7 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
   console.log(`accessDenied: checking access to ${doc} by ${agent} and origin ${origin}`)
   let modeURIorReasons = modesAllowed(kb, doc, directory, aclDoc, agent, origin, trustedOrigins)
   let ok = false
-  console.log(`accessDenied: modeURIorReasons: ${modeURIorReasons.size}`)
+  console.log('accessDenied: modeURIorReasons: ' + JSON.stringify(Array.from(modeURIorReasons)))
   modesRequired.forEach(mode => {
     console.log(` checking ` + mode)
     if (modeURIorReasons.has(mode.uri)) {
@@ -32,8 +32,8 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
     } else if (mode.sameTerm(ACL('Append')) && modeURIorReasons.has(ACL('Write').uri)) {
       console.log('  Append required and Write allowed. OK')
     } else {
-      console.log('  MODE REQUIRED NOT ALLOWED:' + mode)
-      ok = modeURIorReasons.pop || 'Forbidden'
+      ok = modeURIorReasons.values().next().value || 'Forbidden'
+      console.log('  MODE REQUIRED NOT ALLOWED: ' + mode + ' Denying with ' + ok)
     }
   })
   return ok
