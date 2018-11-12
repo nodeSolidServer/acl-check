@@ -139,6 +139,9 @@ test('acl-check checkAccess() test - default/inherited', function (t) {
   result = !aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Write')])
   t.ok(result, 'Alice should NOT have Write acces inherited')
 
+  result = !aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Write'), ACL('Read')])
+  t.ok(result, 'Alice should NOT have Read and Write acces inherited')
+
   t.end()
 })
 
