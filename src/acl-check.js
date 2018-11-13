@@ -33,6 +33,11 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
       console.log('  Append required and Write allowed. OK')
     } else {
       ok = modeURIorReasons.values().next().value || 'Forbidden'
+      if (ok.startsWith('http')) {
+	// Then, the situation is that one mode has failed, the other
+	// has passed, and we get URI of the one that passed, but that's not a good error
+        ok = 'All Required Access Modes Not Granted'
+      }
       console.log('  MODE REQUIRED NOT ALLOWED: ' + mode + ' Denying with ' + ok)
     }
   })
