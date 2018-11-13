@@ -59,7 +59,7 @@ test('acl-check accessDenied() test - accessTo', function (t) {
 
   var result = aclLogic.accessDenied(store, container, null, containerAcl, bob, [ ACL('Write')])
   t.ok(result, 'Bob Should not have access')
-  t.equal(result, 'Forbidden', 'Correct reason')
+  t.equal(result, 'User Unauthorized', 'Correct reason')
 
   t.end()
 })
