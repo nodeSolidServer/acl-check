@@ -330,7 +330,7 @@ test('aclCheck accessDenied() test - Various access rules', t => {
 
   result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
   t.ok(result, 'Alice should not have Read and Write access with authorized origin, both modes')
-  t.equal(result, 'User Unauthorized', 'Correct reason')
+  t.equal(result, 'All Required Access Modes Not Granted', 'Correct reason')
 
   result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
   t.ok(result, 'Mallorys app should not have Read and Write access with false origin, both modes')
