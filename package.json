@@ -5,7 +5,7 @@
     "node": "^6.0"
   },
   "description": "Web Access Control check access function",
-  "main": "./lib/index",
+  "main": "./lib/acl-check",
   "files": [
     "lib"
   ],
