@@ -34,8 +34,8 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
     } else {
       ok = modeURIorReasons.values().next().value || 'Forbidden'
       if (ok.startsWith('http')) {
-	// Then, the situation is that one mode has failed, the other
-	// has passed, and we get URI of the one that passed, but that's not a good error
+        // Then, the situation is that one mode has failed, the other
+        // has passed, and we get URI of the one that passed, but that's not a good error
         ok = 'All Required Access Modes Not Granted'
       }
       console.log('  MODE REQUIRED NOT ALLOWED: ' + mode + ' Denying with ' + ok)
@@ -63,11 +63,12 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
     auths = auths.concat(kb.each(null, ACL('defaultForNew'), directory, null)) // Deprecated but keep for ages
     console.log(`   ${auths.length}  default authentications about ${directory} in ${aclDoc}`)
   }
-  if (origin && trustedOrigins && trustedOrigins.includes(origin)) {
+  if (origin && trustedOrigins && trustedOriginsIncludeOrigin(trustedOrigins, origin)) {
     console.log('Origin ' + origin + ' is trusted')
     origin = null // stop worrying about origin
     console.log(`  modesAllowed: Origin ${origin} is trusted.`)
   }
+
   function agentOrGroupOK (auth, agent) {
     console.log(`   Checking auth ${auth} with agent ${agent}`)
     if (kb.holds(auth, ACL('agentClass'), FOAF('Agent'), aclDoc)) {
@@ -132,6 +133,10 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
     }
   })
   return modeURIorReasons
+}
+
+function trustedOriginsIncludeOrigin (trustedOrigins, origin) {
+  return trustedOrigins.filter(trustedOrigin => trustedOrigin.termType === origin.termType && trustedOrigin.value === origin.value).length > 0
 }
 
 module.exports.checkAccess = checkAccess
