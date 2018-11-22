@@ -20,30 +20,40 @@ function publisherTrustedApp (kb, doc, aclDoc, modesRequired, origin, docAuths) 
   // modesRequired.every(mode => appAuths.some(auth => kb.holds(auth, ACL('mode'), mode, aclDoc)))
 }
 
-/* Function checkAccess
-** @param kb A quadstore
-** @param doc the resource (A named node) or directory for which ACL applies
-*/
-function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
-  let modeURIs = modesAllowed(kb, doc, directory, aclDoc, agent, origin, trustedOrigins)
-  let ok = true
-  console.log(`CheckAccess: modeURIs: ${modeURIs.size}`)
+function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
+  console.log(`accessDenied: checking access to ${doc} by ${agent} and origin ${origin}`)
+  let modeURIorReasons = modesAllowed(kb, doc, directory, aclDoc, agent, origin, trustedOrigins)
+  let ok = false
+  console.log('accessDenied: modeURIorReasons: ' + JSON.stringify(Array.from(modeURIorReasons)))
   modesRequired.forEach(mode => {
     console.log(` checking ` + mode)
-    if (modeURIs.has(mode.uri)) {
+    if (modeURIorReasons.has(mode.uri)) {
       console.log('  Mode required and allowed:' + mode)
-    } else if (mode.sameTerm(ACL('Append')) && modeURIs.has(ACL('Write').uri)) {
+    } else if (mode.sameTerm(ACL('Append')) && modeURIorReasons.has(ACL('Write').uri)) {
       console.log('  Append required and Write allowed. OK')
     } else {
-      console.log('  MODE REQUIRED NOT ALLOWED:' + mode)
-      ok = false
+      ok = modeURIorReasons.values().next().value || 'Forbidden'
+      if (ok.startsWith('http')) {
+	// Then, the situation is that one mode has failed, the other
+	// has passed, and we get URI of the one that passed, but that's not a good error
+        ok = 'All Required Access Modes Not Granted'
+      }
+      console.log('  MODE REQUIRED NOT ALLOWED: ' + mode + ' Denying with ' + ok)
     }
   })
   return ok
 }
 
-function modesAllowed (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
-  console.log(`modesAllowed: checking access to ${doc} by ${agent}`)
+/* Function checkAccess
+** @param kb A quadstore
+** @param doc the resource (A named node) or directory for which ACL applies
+*/
+function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
+  return !Boolean(accessDenied(kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins))
+}
+
+function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins) {
+  console.log(`modesAllowed: checking access to ${doc} by ${agent} and origin ${origin}`)
   var auths
   if (!directory) { // Normal case, ACL for a file
     auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
@@ -89,36 +99,42 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, modesRequired, origin,
     return kb.holds(auth, ACL('origin'), origin, aclDoc)
   }
 
-  function agentAndAppOK (auth) {
+  function agentAndAppFail (auth) {
     if (!agentOrGroupOK(auth, agent)) {
       console.log('     The agent/group/public check fails')
-      return false
+      return 'User Unauthorized'
     }
     if (!origin) {
       console.log('     Origin check not needed: no origin.')
-      return true
+      return false
     }
     if (originOK(auth, origin)) {
       console.log('     Origin check succeeded.')
-      return true
+      return false
     }
     console.log('     Origin check FAILED. Origin not trusted.')
-    return false // @@ look for other trusted apps
+    return 'Origin Unauthorized' // @@ look for other trusted apps
   }
 
-  auths = auths.filter(agentAndAppOK)
-  console.log('  auths with good who and what: ' + auths.length)
-  var modeURIs = new Set()
+  var modeURIorReasons = new Set()
+
   auths.forEach(auth => {
-    let modes = kb.each(auth, ACL('mode'), null, aclDoc)
-    modes.forEach(mode => {
-      console.log('      Mode allowed: ' + mode)
-      modeURIs.add(mode.uri)
-    })
+    let agentAndAppStatus = agentAndAppFail(auth)
+    if (agentAndAppStatus) {
+      console.log('      Check failed: ' + agentAndAppStatus)
+      modeURIorReasons.add(agentAndAppStatus)
+    } else {
+      let modes = kb.each(auth, ACL('mode'), null, aclDoc)
+      modes.forEach(mode => {
+        console.log('      Mode allowed: ' + mode)
+        modeURIorReasons.add(mode.uri)
+      })
+    }
   })
-  return modeURIs
+  return modeURIorReasons
 }
 
 module.exports.checkAccess = checkAccess
+module.exports.accessDenied = accessDenied
 module.exports.modesAllowed = modesAllowed
 module.exports.publisherTrustedApp = publisherTrustedApp
