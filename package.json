@@ -36,7 +36,8 @@
     "data"
   ],
   "author": "Tim Berners-Lee <timbl@w3.org>",
-  "contributor": "Dmitri Zagidulin <dzagidulin@gmail.com>",
+  "contributor": [ "Kjetil Kjernsmo <kjetil@kjernsmo.net>" ,
+                   "Dmitri Zagidulin <dzagidulin@gmail.com>" ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/solid/acl-check/issues"
