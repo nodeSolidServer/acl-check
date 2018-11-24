@@ -86,8 +86,8 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
       console.log('    Agent explicitly authenticated.')
       return true
     }
-    if (kb.each(auth, ACL('accessToGroup'), null, aclDoc).some(
-      group => kb.holds(agent, VCARD('member'), group, group.doc()))) {
+    if (kb.each(auth, ACL('agentGroup'), null, aclDoc).some(
+      group => kb.holds(group, VCARD('hasMember'), agent, group.doc()))) {
       console.log('    Agent is member of group which has accees.')
       return true
     }
