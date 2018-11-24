@@ -49,7 +49,7 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
 ** @param doc the resource (A named node) or directory for which ACL applies
 */
 function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
-  return !Boolean(accessDenied(kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins))
+  return !accessDenied(kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
 }
 
 function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins) {
