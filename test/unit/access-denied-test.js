@@ -351,3 +351,34 @@ test('aclCheck accessDenied() test - Various access rules', t => {
   t.end()
 })
 
+test('aclCheck accessDenied() test - With trustedOrigins', t => {
+  let resource = $rdf.sym('https://alice.example.com/docs/file1')
+  let aclUrl = 'https://alice.example.com/docs/.acl'
+  let aclDoc = $rdf.sym(aclUrl)
+
+  const origin = $rdf.sym('https://apps.example.com')
+  const malorigin = $rdf.sym('https://mallory.example.com')
+  const store = $rdf.graph() // Quad store
+  const ACLtext = prefixes +
+    ` <#auth> a acl:Authorization;
+    acl:mode acl:Read;
+    acl:agent alice:me;
+    acl:origin <${origin.uri}> ;
+    acl:accessTo <${resource.uri}> .
+  `
+  $rdf.parse(ACLtext, store, aclUrl, 'text/turtle')
+
+  const agent = alice
+  const directory = null
+  var modesRequired = [ ACL('Read') ]
+  const trustedOrigins = [$rdf.sym('https://apps.example.com')]
+
+  var result = !aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
+  t.ok(result, 'Should get access when origin is trusted')
+
+  var result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Should not get access when origin is not trusted')
+
+  t.end()
+})
+
