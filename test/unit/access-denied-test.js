@@ -221,6 +221,38 @@ test('aclCheck accessDenied() test - Append access implied by Write acecss', t =
   t.end()
 })
 
+// Append access implied by Write acecss without an acl:origin
+test('aclCheck accessDenied() test - Append access implied by Write acecss without acl:origin', t => {
+  let resource = $rdf.sym('https://alice.example.com/docs/file1')
+  let aclUrl = 'https://alice.example.com/docs/.acl'
+  let aclDoc = $rdf.sym(aclUrl)
+
+  const origin = $rdf.sym('https://apps.example.com')
+  const malorigin = $rdf.sym('https://mallory.example.com')
+  const store = $rdf.graph() // Quad store
+  const ACLtext = prefixes +
+  ` <#auth> a acl:Authorization;
+    acl:mode acl:Write;
+    acl:agent alice:me;
+    acl:accessTo <${resource.uri}> .
+  `
+  $rdf.parse(ACLtext, store, aclUrl, 'text/turtle')
+
+  const agent = alice
+  const directory = null
+  const modesRequired = [ ACL('Append') ]
+  const trustedOrigins = null
+
+
+  var result = !aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
+  t.ok(result, 'App should have Append access implied by Write access with an origin that is ignored')
+
+  result = !aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
+  t.ok(result, 'Mallorys app should have Append access with false origin')
+
+  t.end()
+})
+
 test('aclCheck accessDenied() test - Read, Write and Append', t => {
   let resource = $rdf.sym('https://alice.example.com/docs/file1')
   let aclUrl = 'https://alice.example.com/docs/.acl'

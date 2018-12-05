@@ -97,7 +97,7 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
   } // Agent or group
 
   function originOK (auth, origin) {
-    return kb.holds(auth, ACL('origin'), origin, aclDoc)
+    return kb.holds(auth, ACL('origin'), origin, aclDoc) || !kb.holds(auth, ACL('origin'), null, aclDoc)
   }
 
   function agentAndAppFail (auth) {
