@@ -2,7 +2,7 @@
   "name": "@solid/acl-check",
   "version": "0.1.1",
   "engines": {
-    "node": "^8.0"
+    "node": ">=8.0"
   },
   "description": "Web Access Control check access function",
   "main": "./lib/acl-check",
