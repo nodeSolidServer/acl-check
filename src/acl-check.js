@@ -71,10 +71,6 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
 
   function agentOrGroupOK (auth, agent) {
     log(`   Checking auth ${auth} with agent ${agent}`)
-    if (kb.holds(auth, ACL('agentClass'), FOAF('Agent'), aclDoc)) {
-      log(`    Agent or group: Ok, its public.`)
-      return true
-    }
     if (!agent) {
       log(`    Agent or group: Fail: not public and not logged on.`)
       return false
@@ -101,6 +97,10 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
   }
 
   function agentAndAppFail (auth) {
+    if (kb.holds(auth, ACL('agentClass'), FOAF('Agent'), aclDoc)) {
+      log(`    Agent or group: Ok, its public.`)
+      return false
+    }
     if (!agentOrGroupOK(auth, agent)) {
       log('     The agent/group/public check fails')
       return 'User Unauthorized'
