@@ -102,7 +102,7 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
       return false
     }
     if (!agentOrGroupOK(auth, agent)) {
-      log('     The agent/group/public check fails')
+      log('     The agent/group check fails')
       return 'User Unauthorized'
     }
     if (!origin) {
