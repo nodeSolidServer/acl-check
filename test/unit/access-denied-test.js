@@ -107,6 +107,9 @@ test('acl-check accessDenied() test - default/inherited', function (t) {
   let containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
   let file1 = $rdf.sym('https://alice.example.com/docs/file1')
   let file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
+  const origin = $rdf.sym('https://apps.example.com')
+  const malorigin = $rdf.sym('https://mallory.example.com')
+  const trustedOrigins = null
   var result
   const store = $rdf.graph()
   /*
@@ -124,6 +127,24 @@ test('acl-check accessDenied() test - default/inherited', function (t) {
 `
   $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
   console.log('@@' + containerAclText + '@@@')
+
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Read')])
+  t.ok(result, 'Alice should have read access - Public')
+
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, bob, [ ACL('Read')])
+  t.ok(result, 'Bob should have read access too - Public')
+
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Read')], origin, trustedOrigins)
+  t.ok(result, 'Alice should have read access regardless of origin - Public')
+
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, bob, [ ACL('Read')], origin, trustedOrigins)
+  t.ok(result, 'Bob should have read access too regardless of origin - Public')
+
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Read')], malorigin, trustedOrigins)
+  t.ok(result, 'Alice should have read access even with wrong origin - Public')
+
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, bob, [ ACL('Read')], malorigin, trustedOrigins)
+  t.ok(result, 'Bob should have read access too even with wrong origin - Public')
 
   result = aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Write')])
   t.ok(result, 'Alice should NOT have write acces inherited  - Public')
