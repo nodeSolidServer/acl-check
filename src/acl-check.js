@@ -53,7 +53,6 @@ function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, 
 }
 
 function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins) {
-  log(`modesAllowed: checking access to ${doc} by ${agent} and origin ${origin}`)
   var auths
   if (!directory) { // Normal case, ACL for a file
     auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
