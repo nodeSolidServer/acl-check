@@ -85,7 +85,7 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
     }
     if (kb.each(auth, ACL('agentGroup'), null, aclDoc).some(
       group => kb.holds(group, VCARD('hasMember'), agent, group.doc()))) {
-      log('    Agent is member of group which has accees.')
+      log('    Agent is member of group which has access.')
       return true
     }
     log('    Agent or group access fails for this authentication.')

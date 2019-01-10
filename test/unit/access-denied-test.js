@@ -88,13 +88,13 @@ test('acl-check accessDenied() test - default/inherited', function (t) {
   $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
 
   result = !aclLogic.accessDenied(store, file1, container, containerAcl, alice, [ ACL('Read')])
-  t.ok(result, 'Alice should have Read acces inherited')
+  t.ok(result, 'Alice should have Read access inherited')
 
   result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Read')])
-  t.ok(result, 'Alice should have Read acces inherited 2')
+  t.ok(result, 'Alice should have Read access inherited 2')
 
   result = aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Write')])
-  t.ok(result, 'Alice should NOT have Write acces inherited')
+  t.ok(result, 'Alice should NOT have Write access inherited')
 
   t.end()
 })
@@ -147,7 +147,7 @@ test('acl-check accessDenied() test - default/inherited', function (t) {
   t.ok(result, 'Bob should have read access too even with wrong origin - Public')
 
   result = aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Write')])
-  t.ok(result, 'Alice should NOT have write acces inherited  - Public')
+  t.ok(result, 'Alice should NOT have write access inherited  - Public')
 
   t.end()
 })
@@ -168,13 +168,13 @@ test('acl-check accessDenied() test - accessTo', function (t) {
   $rdf.parse(ACLtext, store, containerAclUrl, 'text/turtle')
 
   var result = aclLogic.accessDenied(store, container, null, containerAcl, null, [ ACL('Read')])
-  t.ok(result, 'Anonymous should NOT have Read acces to public thing - AuthenticatedAgent')
+  t.ok(result, 'Anonymous should NOT have Read access to public thing - AuthenticatedAgent')
 
   result = aclLogic.accessDenied(store, container, null, containerAcl, null, [ ACL('Write')])
-  t.ok(result, 'Anonymous should NOT have Write acces - AuthenticatedAgent')
+  t.ok(result, 'Anonymous should NOT have Write access - AuthenticatedAgent')
 
   result = !aclLogic.accessDenied(store, container, null, containerAcl, bob, [ ACL('Write')])
-  t.ok(result, 'Bob should have Write acces to public write - AuthenticatedAgent')
+  t.ok(result, 'Bob should have Write access to public write - AuthenticatedAgent')
 
   t.end()
 })
@@ -202,7 +202,7 @@ test('acl-check accessDenied() test - default/inherited', function (t) {
   $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
 
   result = aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Write')])
-  t.ok(result, 'Alice should NOT have write acces inherited  - AuthenticatedAgent')
+  t.ok(result, 'Alice should NOT have write access inherited  - AuthenticatedAgent')
 
   t.end()
 })
