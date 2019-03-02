@@ -45,17 +45,17 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
 }
 
 async function getTrustedModesForOrigin (kb, agent, origin) {
-  if (!kb || !origin) {
-    return Promise.resolve({})
+  if (!kb || !agent || !origin) {
+    return Promise.resolve([])
   }
-  const queryString = `
+  const result = await query(`
   SELECT ?mode WHERE {
     ${agent} ${ACL('trustedApp')} ?trustedOrigin.
     ?trustedOrigin  ${ACL('origin')} ${origin};
                     ${ACL('mode')} ?mode .
-  }`
-  const results = await query(queryString, kb)
-  return results.map(result => result['?mode'])
+  }`, kb)
+  const trustedModes = result.map(result => result['?mode'])
+  return Promise.resolve(trustedModes)
 }
 
 async function query (queryString, store) {

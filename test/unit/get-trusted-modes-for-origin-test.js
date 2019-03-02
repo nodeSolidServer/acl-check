@@ -13,7 +13,7 @@ const prefixes = `
 @prefix alice: ${ALICE('#')} .
 `
 
-test('aclCheck getTrustedModesForOirign() test', t => {
+test('aclCheck getTrustedModesForOrigin() getting trusted modes from agentStore', t => {
   const origin = $rdf.sym('https://apps.example.com')
   const agent = alice
   const agentStore = $rdf.graph()

@@ -404,7 +404,7 @@ test('aclCheck accessDenied() test - With trustedOrigins', t => {
   t.end()
 })
 
-test('aclCheck accessDenied() test - with use of acl:trustedApp', t => {
+test('aclCheck accessDenied() test - with use of originTrustedModes', t => {
   const resource = ALICE('docs/file1')
   const aclDoc = ALICE('docs/.acl')
   const aclUrl = aclDoc.uri
