@@ -50,7 +50,7 @@ async function getTrustedModesForOrigin (kb, aclDoc, doc, origin) {
   const owners = ownerAuths.reduce((acc, auth) => acc.concat(kb.each(auth, ACL('agent'))), []) //  owners
   const result = await Promise.all(owners.map(owner => query(`
   SELECT ?mode WHERE {
-    ${owners} ${ACL('trustedApp')} ?trustedOrigin.
+    ${owner} ${ACL('trustedApp')} ?trustedOrigin.
     ?trustedOrigin  ${ACL('origin')} ${origin};
                     ${ACL('mode')} ?mode .
   }`, kb)))
