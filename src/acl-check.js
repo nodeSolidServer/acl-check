@@ -44,17 +44,21 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
   return ok
 }
 
-async function getTrustedModesForOrigin (kb, agent, origin) {
-  if (!kb || !agent || !origin) {
-    return Promise.resolve([])
-  }
-  const result = await query(`
+async function getTrustedModesForOrigin (kb, aclDoc, doc, origin) {
+  const docAuths = kb.each(null, ACL('accessTo'), doc, aclDoc)
+  const ownerAuths = docAuths.filter(auth => kb.holds(auth, ACL('mode'), ACL('Control'), aclDoc))
+  const owners = ownerAuths.reduce((acc, auth) => acc.concat(kb.each(auth, ACL('agent'))), []) //  owners
+  const result = await Promise.all(owners.map(owner => query(`
   SELECT ?mode WHERE {
-    ${agent} ${ACL('trustedApp')} ?trustedOrigin.
+    ${owners} ${ACL('trustedApp')} ?trustedOrigin.
     ?trustedOrigin  ${ACL('origin')} ${origin};
                     ${ACL('mode')} ?mode .
-  }`, kb)
-  const trustedModes = result.map(result => result['?mode'])
+  }`, kb)))
+  let trustedModes = []
+  result.map(ownerResults => ownerResults.map(entry => {
+    console.log('entry', entry['?mode'])
+    trustedModes.push(entry['?mode'])
+  }))
   return Promise.resolve(trustedModes)
 }
 

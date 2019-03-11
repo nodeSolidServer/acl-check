@@ -7,23 +7,36 @@ const $rdf = require('rdflib')
 const ACL = $rdf.Namespace('http://www.w3.org/ns/auth/acl#')
 const ALICE = $rdf.Namespace('https://alice.example.com/')
 const alice = ALICE('#me')
+const BOB = $rdf.Namespace('https://bob.example.com/')
+const bob = BOB('#me')
 
 const prefixes = `
 @prefix acl: ${ACL()} .
 @prefix alice: ${ALICE('#')} .
 `
 
-test('aclCheck getTrustedModesForOrigin() getting trusted modes from agentStore', t => {
+test('aclCheck getTrustedModesForOrigin() getting trusted modes from publisherStore', t => {
   const origin = $rdf.sym('https://apps.example.com')
-  const agent = alice
-  const agentStore = $rdf.graph()
-  const agentText = `${prefixes}
-  ${agent} acl:trustedApp [  acl:origin ${origin};
+  const doc = ALICE('some/doc.txt')
+  const aclDoc = ALICE('some/doc.txt.acl')
+  const publisher = alice
+  const requester = bob
+  const publisherStore = $rdf.graph()
+  const aclFileText = `${prefixes}
+<#owner>
+    a acl:Authorization;
+    acl:agent ${publisher};
+    acl:accessTo ${doc};
+    acl:mode acl:Control.
+  `
+  $rdf.parse(aclFileText, publisherStore, aclDoc.uri, 'text/turtle')
+  const publisherText = `${prefixes}
+  ${publisher} acl:trustedApp [  acl:origin ${origin};
                              acl:mode acl:Read, acl:Write].
   `
-  $rdf.parse(agentText, agentStore, agent.uri, 'text/turtle')
+  $rdf.parse(publisherText, publisherStore, publisher.uri, 'text/turtle')
 
-  aclLogic.getTrustedModesForOrigin(agentStore, agent, origin).then(result => {
+  aclLogic.getTrustedModesForOrigin(publisherStore, aclDoc, doc, origin).then(result => {
     t.deepEqual(result, [ACL('Read'), ACL('Write')], 'Should get a list of modes')
     t.end()
   })
