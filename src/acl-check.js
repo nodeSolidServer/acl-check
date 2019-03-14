@@ -1,7 +1,6 @@
 // Access control logic
 
 const $rdf = require('rdflib')
-const Fetcher = $rdf.Fetcher
 const ACL = $rdf.Namespace('http://www.w3.org/ns/auth/acl#')
 const FOAF = $rdf.Namespace('http://xmlns.com/foaf/0.1/')
 const VCARD = $rdf.Namespace('http://www.w3.org/2006/vcard/ns#')

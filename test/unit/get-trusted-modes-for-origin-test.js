@@ -36,7 +36,7 @@ test('aclCheck getTrustedModesForOrigin() getting trusted modes from publisherSt
   `
   $rdf.parse(publisherText, publisherStore, publisher.uri, 'text/turtle')
 
-  aclLogic.getTrustedModesForOrigin(publisherStore, aclDoc, doc, origin).then(result => {
+  aclLogic.getTrustedModesForOrigin(publisherStore, aclDoc, doc, origin, Promise.resolve.bind(Promise)).then(result => {
     t.deepEqual(result, [ACL('Read'), ACL('Write')], 'Should get a list of modes')
     t.end()
   })
