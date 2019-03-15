@@ -1,6 +1,6 @@
 {
   "name": "@solid/acl-check",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "engines": {
     "node": ">=8.0"
   },
