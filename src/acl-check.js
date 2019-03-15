@@ -20,9 +20,9 @@ function publisherTrustedApp (kb, doc, aclDoc, modesRequired, origin, docAuths) 
   // modesRequired.every(mode => appAuths.some(auth => kb.holds(auth, ACL('mode'), mode, aclDoc)))
 }
 
-function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
+function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins, originTrustedModes = []) {
   log(`accessDenied: checking access to ${doc} by ${agent} and origin ${origin}`)
-  let modeURIorReasons = modesAllowed(kb, doc, directory, aclDoc, agent, origin, trustedOrigins)
+  const modeURIorReasons = modesAllowed(kb, doc, directory, aclDoc, agent, origin, trustedOrigins, originTrustedModes)
   let ok = false
   log('accessDenied: modeURIorReasons: ' + JSON.stringify(Array.from(modeURIorReasons)))
   modesRequired.forEach(mode => {
@@ -44,15 +44,9 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
   return ok
 }
 
-/* Function checkAccess
-** @param kb A quadstore
-** @param doc the resource (A named node) or directory for which ACL applies
-*/
-function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins) {
-  return !accessDenied(kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
-}
-
-function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins) {
+async function getTrustedModesForOrigin (kb, doc, directory, aclDoc, origin, fetch) {
+  // FIXME: this is duplicate code from the modesAllowed function, will refactor,
+  // see https://github.com/solid/acl-check/issues/22
   var auths
   if (!directory) { // Normal case, ACL for a file
     auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
@@ -62,7 +56,68 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
     auths = auths.concat(kb.each(null, ACL('defaultForNew'), directory, null)) // Deprecated but keep for ages
     log(`   ${auths.length}  default authentications about ${directory} in ${aclDoc}`)
   }
-  if (origin && trustedOrigins && trustedOriginsIncludeOrigin(trustedOrigins, origin)) {
+  const ownerAuths = auths.filter(auth => kb.holds(auth, ACL('mode'), ACL('Control'), aclDoc))
+  const owners = ownerAuths.reduce((acc, auth) => acc.concat(kb.each(auth, ACL('agent'))), []) //  owners
+  let result
+  try {
+    result = await Promise.all(owners.map(owner => {
+      return fetch(owner).then(() => {
+        const q = `
+        SELECT ?mode WHERE {
+          ${owner} ${ACL('trustedApp')} ?trustedOrigin.
+          ?trustedOrigin  ${ACL('origin')} ${origin};
+                          ${ACL('mode')} ?mode .
+        }`
+        return query(q, kb)
+      }).catch(e => {
+        log('could not fetch owner doc', owner, e.message)
+      })
+    }))
+  } catch (e) {
+    log('error checking owner profiles', e.message)
+  }
+  let trustedModes = []
+  result.map(ownerResults => ownerResults.map(entry => {
+    trustedModes.push(entry['?mode'])
+  }))
+  return Promise.resolve(trustedModes)
+}
+
+async function query (queryString, store) {
+  return new Promise((resolve, reject) => {
+    try {
+      const query = $rdf.SPARQLToQuery(queryString, true, store)
+      const results = []
+      store.query(query, (result) => {
+        results.push(result)
+      }, null, () => {
+        resolve(results)
+      })
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+
+/* Function checkAccess
+** @param kb A quadstore
+** @param doc the resource (A named node) or directory for which ACL applies
+*/
+function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins, originTrustedModes) {
+  return !accessDenied(kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins, originTrustedModes)
+}
+
+function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins, originTrustedModes = []) {
+  var auths
+  if (!directory) { // Normal case, ACL for a file
+    auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
+    log(`   ${auths.length} direct authentications about ${doc}`)
+  } else {
+    auths = kb.each(null, ACL('default'), directory, null)
+    auths = auths.concat(kb.each(null, ACL('defaultForNew'), directory, null)) // Deprecated but keep for ages
+    log(`   ${auths.length}  default authentications about ${directory} in ${aclDoc}`)
+  }
+  if (origin && trustedOrigins && nodesIncludeNode(trustedOrigins, origin)) {
     log('Origin ' + origin + ' is trusted')
     origin = null // stop worrying about origin
     log(`  modesAllowed: Origin ${origin} is trusted.`)
@@ -108,6 +163,10 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
       log('     Origin check not needed: no origin.')
       return false
     }
+    if (originTrustedModes && originTrustedModes.length > 0) {
+      log(`     Origin might have access (${originTrustedModes.join(', ')})`)
+      return false
+    }
     if (originOK(auth, origin)) {
       log('     Origin check succeeded.')
       return false
@@ -125,6 +184,9 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
       modeURIorReasons.add(agentAndAppStatus)
     } else {
       let modes = kb.each(auth, ACL('mode'), null, aclDoc)
+      if (originTrustedModes && originTrustedModes.length > 0) {
+        modes = modes.filter(mode => nodesIncludeNode(originTrustedModes, mode))
+      }
       modes.forEach(mode => {
         log('      Mode allowed: ' + mode)
         modeURIorReasons.add(mode.uri)
@@ -134,9 +196,8 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
   return modeURIorReasons
 }
 
-function trustedOriginsIncludeOrigin (trustedOrigins, origin) {
-  return trustedOrigins.filter(
-    trustedOrigin => trustedOrigin.termType === origin.termType && trustedOrigin.value === origin.value).length > 0
+function nodesIncludeNode (nodes, node) {
+  return nodes.some(trustedOrigin => trustedOrigin.termType === node.termType && trustedOrigin.value === node.value)
 }
 
 function configureLogger (logger) {
@@ -147,9 +208,10 @@ function log (...msgs) {
   return (_logger || console.log).apply(_logger, msgs)
 }
 
+module.exports.accessDenied = accessDenied
 module.exports.checkAccess = checkAccess
 module.exports.configureLogger = configureLogger
+module.exports.getTrustedModesForOrigin = getTrustedModesForOrigin
 module.exports.log = log
-module.exports.accessDenied = accessDenied
 module.exports.modesAllowed = modesAllowed
 module.exports.publisherTrustedApp = publisherTrustedApp

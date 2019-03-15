@@ -9,6 +9,7 @@ const $rdf = require('rdflib')
 
 const ACL = $rdf.Namespace('http://www.w3.org/ns/auth/acl#')
 const FOAF = $rdf.Namespace('http://xmlns.com/foaf/0.1/')
+const ALICE = $rdf.Namespace('https://alice.example.com/')
 
 const prefixes = `@prefix acl: <http://www.w3.org/ns/auth/acl#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
@@ -324,6 +325,38 @@ test('acl-check checkAccess() test - default/inherited', function (t) {
 
   result = !aclLogic.checkAccess(store, file2, container, containerAcl, alice, [ ACL('Write')])
   t.ok(result, 'Alice should NOT have write access inherited  - AuthenticatedAgent')
+
+  t.end()
+})
+
+test('aclCheck checkAccess() test - with use of originTrustedModes', t => {
+  const resource = ALICE('docs/file1')
+  const aclDoc = ALICE('docs/.acl')
+  const aclUrl = aclDoc.uri
+
+  const origin = $rdf.sym('https://apps.example.com')
+  const aclStore = $rdf.graph()
+  // grants read, write and control access to Alice
+  const ACLtext = `${prefixes}
+  <#auth> a acl:Authorization;
+    acl:mode acl:Read, acl:Write, acl:Control;
+    acl:agent alice:me;
+    acl:accessTo ${resource} .
+  `
+  $rdf.parse(ACLtext, aclStore, aclUrl, 'text/turtle')
+
+  const agent = alice
+  const directory = null
+  const trustedOrigins = []
+  const originTrustedModes = [ACL('Read'), ACL('Write')]
+
+  const readWriteModeRequired = [ACL('Read'), ACL('Write')]
+  const readWriteModeResult = aclLogic.checkAccess(aclStore, resource, directory, aclDoc, agent, readWriteModeRequired, origin, trustedOrigins, originTrustedModes)
+  t.ok(readWriteModeResult, 'Should get access to modes when origin is listed as trusted app')
+
+  const controlModeRequired = [ACL('Control')]
+  const controlModeResult = aclLogic.checkAccess(aclStore, resource, directory, aclDoc, agent, controlModeRequired, origin, trustedOrigins, originTrustedModes)
+  t.ok(!controlModeResult, 'All Required Access Modes Not Granted', 'Correct reason')
 
   t.end()
 })
