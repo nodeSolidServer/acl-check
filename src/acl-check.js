@@ -44,19 +44,30 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
   return ok
 }
 
-async function getTrustedModesForOrigin (kb, aclDoc, doc, origin) {
+async function getTrustedModesForOrigin (kb, aclDoc, doc, origin, fetch) {
   const docAuths = kb.each(null, ACL('accessTo'), doc, aclDoc)
   const ownerAuths = docAuths.filter(auth => kb.holds(auth, ACL('mode'), ACL('Control'), aclDoc))
   const owners = ownerAuths.reduce((acc, auth) => acc.concat(kb.each(auth, ACL('agent'))), []) //  owners
-  const result = await Promise.all(owners.map(owner => query(`
-  SELECT ?mode WHERE {
-    ${owner} ${ACL('trustedApp')} ?trustedOrigin.
-    ?trustedOrigin  ${ACL('origin')} ${origin};
-                    ${ACL('mode')} ?mode .
-  }`, kb)))
+  let result
+  try {
+    result = await Promise.all(owners.map(owner => {
+      return fetch(owner).then(() => {
+        const q = `
+        SELECT ?mode WHERE {
+          ${owner} ${ACL('trustedApp')} ?trustedOrigin.
+          ?trustedOrigin  ${ACL('origin')} ${origin};
+                          ${ACL('mode')} ?mode .
+        }`
+        return query(q, kb)
+      }).catch(e => {
+        log('could not fetch owner doc', owner, e.message)
+      })
+    }))
+  } catch (e) {
+    log('error checking owner profiles', e.message)
+  }
   let trustedModes = []
   result.map(ownerResults => ownerResults.map(entry => {
-    console.log('entry', entry['?mode'])
     trustedModes.push(entry['?mode'])
   }))
   return Promise.resolve(trustedModes)
