@@ -44,9 +44,19 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
   return ok
 }
 
-async function getTrustedModesForOrigin (kb, aclDoc, doc, origin, fetch) {
-  const docAuths = kb.each(null, ACL('accessTo'), doc, aclDoc)
-  const ownerAuths = docAuths.filter(auth => kb.holds(auth, ACL('mode'), ACL('Control'), aclDoc))
+async function getTrustedModesForOrigin (kb, doc, directory, aclDoc, origin, fetch) {
+  // FIXME: this is duplicate code from the modesAllowed function, will refactor,
+  // see https://github.com/solid/acl-check/issues/22
+  var auths
+  if (!directory) { // Normal case, ACL for a file
+    auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
+    log(`   ${auths.length} direct authentications about ${doc}`)
+  } else {
+    auths = kb.each(null, ACL('default'), directory, null)
+    auths = auths.concat(kb.each(null, ACL('defaultForNew'), directory, null)) // Deprecated but keep for ages
+    log(`   ${auths.length}  default authentications about ${directory} in ${aclDoc}`)
+  }
+  const ownerAuths = auths.filter(auth => kb.holds(auth, ACL('mode'), ACL('Control'), aclDoc))
   const owners = ownerAuths.reduce((acc, auth) => acc.concat(kb.each(auth, ACL('agent'))), []) //  owners
   let result
   try {
