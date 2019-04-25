@@ -77,9 +77,13 @@ async function getTrustedModesForOrigin (kb, doc, directory, aclDoc, origin, fet
     log('error checking owner profiles', e.message)
   }
   let trustedModes = []
-  result.map(ownerResults => ownerResults.map(entry => {
-    trustedModes.push(entry['?mode'])
-  }))
+  try {
+    result.map(ownerResults => ownerResults.map(entry => {
+      trustedModes.push(entry['?mode'])
+    }))
+  } catch (e) {
+    log('error processing owner results')
+  }
   return Promise.resolve(trustedModes)
 }
 
