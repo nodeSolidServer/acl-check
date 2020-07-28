@@ -18,7 +18,7 @@ const aliceWebId = 'https://alice.example.com/#me'
 const groupWebId = 'https://devteam.example.com/something'
 
 function parseGraph (rdf, baseUrl, rdfSource, contentType = 'text/turtle') {
-  let graph = rdf.graph()
+  const graph = rdf.graph()
   return new Promise((resolve, reject) => {
     rdf.parse(rdfSource, graph, baseUrl, contentType, (err, result) => {
       if (err) { return reject(err) }
@@ -45,7 +45,7 @@ before('init graph', t => {
 })
 
 test('a new PermissionSet()', function (t) {
-  let ps = new PermissionSet()
+  const ps = new PermissionSet()
   t.ok(ps.isEmpty(), 'should be empty')
   t.equal(ps.count, 0, 'should have a count of 0')
   t.notOk(ps.resourceUrl, 'should have a null resource url')
@@ -54,7 +54,7 @@ test('a new PermissionSet()', function (t) {
 })
 
 test('a new PermissionSet() for a resource', function (t) {
-  let ps = new PermissionSet(resourceUrl)
+  const ps = new PermissionSet(resourceUrl)
   t.ok(ps.isEmpty(), 'should be empty')
   t.equal(ps.count, 0, 'should have a count of 0')
   t.equal(ps.resourceUrl, resourceUrl)
@@ -65,12 +65,12 @@ test('a new PermissionSet() for a resource', function (t) {
 })
 
 test('PermissionSet can add and remove agent authorizations', function (t) {
-  let ps = new PermissionSet(resourceUrl, aclUrl)
+  const ps = new PermissionSet(resourceUrl, aclUrl)
   t.equal(ps.aclUrl, aclUrl)
-  let origin = 'https://example.com/'
+  const origin = 'https://example.com/'
   // Notice that addPermission() is chainable:
   ps
-    .addPermission(bobWebId, acl.READ, origin)  // only allow read from origin
+    .addPermission(bobWebId, acl.READ, origin) // only allow read from origin
     .addPermission(aliceWebId, [acl.READ, acl.WRITE])
   t.notOk(ps.isEmpty())
   t.equal(ps.count, 2)
@@ -106,7 +106,7 @@ test('PermissionSet can add and remove agent authorizations', function (t) {
 })
 
 test('PermissionSet no duplicate authorizations test', function (t) {
-  let ps = new PermissionSet(resourceUrl, aclUrl)
+  const ps = new PermissionSet(resourceUrl, aclUrl)
   // Now add two identical permissions
   ps.addPermission(aliceWebId, [acl.READ, acl.WRITE])
   ps.addPermission(aliceWebId, [acl.READ, acl.WRITE])
@@ -115,11 +115,11 @@ test('PermissionSet no duplicate authorizations test', function (t) {
 })
 
 test('PermissionSet can add and remove group authorizations', function (t) {
-  let ps = new PermissionSet(resourceUrl)
+  const ps = new PermissionSet(resourceUrl)
   // Let's add an agentGroup permission
   ps.addGroupPermission(groupWebId, [acl.READ, acl.WRITE])
   t.equal(ps.count, 1)
-  let auth = ps.permissionFor(groupWebId)
+  const auth = ps.permissionFor(groupWebId)
   t.equal(auth.group, groupWebId)
   ps.removePermission(groupWebId, [acl.READ, acl.WRITE])
   t.ok(ps.isEmpty())
@@ -127,7 +127,7 @@ test('PermissionSet can add and remove group authorizations', function (t) {
 })
 
 test('iterating over a PermissionSet', function (t) {
-  let ps = new PermissionSet(resourceUrl, aclUrl)
+  const ps = new PermissionSet(resourceUrl, aclUrl)
   ps
     .addPermission(bobWebId, acl.READ)
     .addPermission(aliceWebId, [acl.READ, acl.WRITE])
@@ -138,35 +138,35 @@ test('iterating over a PermissionSet', function (t) {
 })
 
 test.skip('a PermissionSet() for a container', function (t) {
-  let isContainer = true
-  let ps = new PermissionSet(containerUrl, aclUrl, isContainer)
+  const isContainer = true
+  const ps = new PermissionSet(containerUrl, aclUrl, isContainer)
   t.ok(ps.isAuthInherited(),
     'A PermissionSet for a container should be inherited by default')
   ps.addPermission(bobWebId, acl.READ)
-  let auth = ps.permissionFor(bobWebId)
+  const auth = ps.permissionFor(bobWebId)
   t.ok(auth.isInherited(),
     'An authorization intended for a container should be inherited by default')
   t.end()
 })
 
 test('a PermissionSet() for a resource (not container)', function (t) {
-  let ps = new PermissionSet(containerUrl)
+  const ps = new PermissionSet(containerUrl)
   t.notOk(ps.isAuthInherited())
   ps.addPermission(bobWebId, acl.READ)
-  let auth = ps.permissionFor(bobWebId)
+  const auth = ps.permissionFor(bobWebId)
   t.notOk(auth.isInherited(),
     'An authorization intended for a resource should not be inherited by default')
   t.end()
 })
 
 test('a PermissionSet can be initialized from an .acl graph', function (t) {
-  let isContainer = false
+  const isContainer = false
   // see test/resources/acl-container-ttl.js
-  let ps = new PermissionSet(resourceUrl, aclUrl, isContainer,
+  const ps = new PermissionSet(resourceUrl, aclUrl, isContainer,
     { graph: parsedAclGraph, rdf })
 
   // Check to make sure Alice's authorizations were read in correctly
-  let auth = ps.findAuthByAgent(aliceWebId, resourceUrl)
+  const auth = ps.findAuthByAgent(aliceWebId, resourceUrl)
   t.ok(auth, 'Alice should have a permission for /docs/file1')
   t.ok(auth.isInherited())
   t.ok(auth.allowsWrite() && auth.allowsWrite() && auth.allowsControl())
@@ -178,7 +178,7 @@ test('a PermissionSet can be initialized from an .acl graph', function (t) {
   t.equal(auth.mailTo[0], 'alice@example.com')
   t.equal(auth.mailTo[1], 'bob@example.com')
   // Check to make sure Bob's authorizations were read in correctly
-  let auth2 = ps.findAuthByAgent(bobWebId, resourceUrl)
+  const auth2 = ps.findAuthByAgent(bobWebId, resourceUrl)
   t.ok(auth2, 'Container acl should also have an authorization for Bob')
   t.ok(auth2.isInherited())
   t.ok(auth2.allowsWrite() && auth2.allowsWrite() && auth2.allowsControl())
@@ -186,8 +186,8 @@ test('a PermissionSet can be initialized from an .acl graph', function (t) {
   t.equal(auth2.mailTo[0], 'alice@example.com')
   t.equal(auth2.mailTo[1], 'bob@example.com')
   // // Now check that the Public Read authorization was parsed
-  let publicResource = 'https://alice.example.com/profile/card'
-  let publicAuth = ps.findPublicAuth(publicResource)
+  const publicResource = 'https://alice.example.com/profile/card'
+  const publicAuth = ps.findPublicAuth(publicResource)
   t.ok(publicAuth.isPublic())
   t.notOk(publicAuth.isInherited())
   t.ok(publicAuth.allowsRead())
@@ -195,15 +195,15 @@ test('a PermissionSet can be initialized from an .acl graph', function (t) {
 })
 
 test('PermissionSet equals test 1', function (t) {
-  let ps1 = new PermissionSet()
-  let ps2 = new PermissionSet()
+  const ps1 = new PermissionSet()
+  const ps2 = new PermissionSet()
   t.ok(ps1.equals(ps2))
   t.end()
 })
 
 test('PermissionSet equals test 2', function (t) {
-  let ps1 = new PermissionSet(resourceUrl)
-  let ps2 = new PermissionSet()
+  const ps1 = new PermissionSet(resourceUrl)
+  const ps2 = new PermissionSet()
   t.notOk(ps1.equals(ps2))
   ps2.resourceUrl = resourceUrl
   t.ok(ps1.equals(ps2))
@@ -216,9 +216,9 @@ test('PermissionSet equals test 2', function (t) {
 })
 
 test('PermissionSet equals test 3', function (t) {
-  let ps1 = new PermissionSet(containerUrl, containerAclUrl,
+  const ps1 = new PermissionSet(containerUrl, containerAclUrl,
     PermissionSet.CONTAINER)
-  let ps2 = new PermissionSet(containerUrl, containerAclUrl)
+  const ps2 = new PermissionSet(containerUrl, containerAclUrl)
   t.notOk(ps1.equals(ps2))
   ps2.resourceType = PermissionSet.CONTAINER
   t.ok(ps1.equals(ps2))
@@ -226,9 +226,9 @@ test('PermissionSet equals test 3', function (t) {
 })
 
 test('PermissionSet equals test 4', function (t) {
-  let ps1 = new PermissionSet(resourceUrl)
+  const ps1 = new PermissionSet(resourceUrl)
   ps1.addPermission(aliceWebId, acl.READ)
-  let ps2 = new PermissionSet(resourceUrl)
+  const ps2 = new PermissionSet(resourceUrl)
   t.notOk(ps1.equals(ps2))
   ps2.addPermission(aliceWebId, acl.READ)
   t.ok(ps1.equals(ps2))
@@ -238,7 +238,7 @@ test('PermissionSet equals test 4', function (t) {
 test('PermissionSet serialized & deserialized round trip test', function (t) {
   var ps = new PermissionSet(containerUrl, containerAclUrl,
     PermissionSet.CONTAINER, { graph: parsedAclGraph, rdf })
-  let auth = ps.permissionFor(aliceWebId)
+  const auth = ps.permissionFor(aliceWebId)
   // console.log(ps.serialize())
   t.ok(ps.equals(ps), 'A PermissionSet should equal itself')
   // Now check to make sure serialize() & reparse results in the same set
@@ -249,7 +249,7 @@ test('PermissionSet serialized & deserialized round trip test', function (t) {
       return parseGraph(rdf, containerAclUrl, serializedTurtle)
     })
     .then(parsedGraph => {
-      let ps2 = new PermissionSet(containerUrl, containerAclUrl,
+      const ps2 = new PermissionSet(containerUrl, containerAclUrl,
         PermissionSet.CONTAINER, { graph: parsedGraph, rdf })
       // console.log(ps2.serialize())
       t.ok(ps.equals(ps2),
@@ -261,7 +261,7 @@ test('PermissionSet serialized & deserialized round trip test', function (t) {
 test('PermissionSet allowsPublic() test', function (t) {
   var ps = new PermissionSet(containerUrl, containerAclUrl,
     PermissionSet.CONTAINER, { graph: parsedAclGraph, rdf })
-  let otherUrl = 'https://alice.example.com/profile/card'
+  const otherUrl = 'https://alice.example.com/profile/card'
   t.ok(ps.allowsPublic(acl.READ, otherUrl),
     'Alice\'s profile should be public-readable')
   t.notOk(ps.allowsPublic(acl.WRITE, otherUrl),
@@ -270,11 +270,11 @@ test('PermissionSet allowsPublic() test', function (t) {
 })
 
 test('allowsPublic() should ignore origin checking', function (t) {
-  let origin = 'https://example.com'
-  let options = { graph: parsedAclGraph, rdf, origin, strictOrigin: true }
+  const origin = 'https://example.com'
+  const options = { graph: parsedAclGraph, rdf, origin, strictOrigin: true }
   var ps = new PermissionSet(containerUrl, containerAclUrl,
     PermissionSet.CONTAINER, options)
-  let otherUrl = 'https://alice.example.com/profile/card'
+  const otherUrl = 'https://alice.example.com/profile/card'
   t.ok(ps.allowsPublic(acl.READ, otherUrl))
 
   ps.checkAccess(otherUrl, 'https://alice.example.com', acl.READ)
@@ -284,15 +284,14 @@ test('allowsPublic() should ignore origin checking', function (t) {
     })
 })
 
-
 test('PermissionSet init from untyped ACL test', function (t) {
-  let rawAclSource = require('../resources/untyped-acl-ttl')
-  let resourceUrl = 'https://alice.example.com/docs/file1'
-  let aclUrl = 'https://alice.example.com/docs/file1.acl'
-  let isContainer = false
+  const rawAclSource = require('../resources/untyped-acl-ttl')
+  const resourceUrl = 'https://alice.example.com/docs/file1'
+  const aclUrl = 'https://alice.example.com/docs/file1.acl'
+  const isContainer = false
   parseGraph(rdf, aclUrl, rawAclSource)
     .then(graph => {
-      let ps = new PermissionSet(resourceUrl, aclUrl, isContainer,
+      const ps = new PermissionSet(resourceUrl, aclUrl, isContainer,
         { graph, rdf })
       t.ok(ps.count,
         'Permission set should init correctly without acl:Authorization type')
@@ -301,7 +300,7 @@ test('PermissionSet init from untyped ACL test', function (t) {
 })
 
 test('PermissionSet serialize() no rdf test', t => {
-  let ps = new PermissionSet()
+  const ps = new PermissionSet()
   ps.serialize()
     .then(() => {
       t.fail('Serialize should not succeed with no rdf lib')
@@ -313,7 +312,7 @@ test('PermissionSet serialize() no rdf test', t => {
 })
 
 test('PermissionSet serialize() rdflib errors test', t => {
-  let ps = new PermissionSet(resourceUrl, aclUrl, false,
+  const ps = new PermissionSet(resourceUrl, aclUrl, false,
     { rdf, graph: parsedAclGraph })
   ps.serialize({ contentType: 'invalid' })
     .then(() => {
@@ -326,14 +325,14 @@ test('PermissionSet serialize() rdflib errors test', t => {
 })
 
 test('PermissionSet save() test', t => {
-  let resourceUrl = 'https://alice.example.com/docs/file1'
-  let aclUrl = 'https://alice.example.com/docs/file1.acl'
-  let isContainer = false
-  let putStub = sinon.stub().returns(Promise.resolve())
-  let mockWebClient = {
+  const resourceUrl = 'https://alice.example.com/docs/file1'
+  const aclUrl = 'https://alice.example.com/docs/file1.acl'
+  const isContainer = false
+  const putStub = sinon.stub().returns(Promise.resolve())
+  const mockWebClient = {
     put: putStub
   }
-  let ps = new PermissionSet(resourceUrl, aclUrl, isContainer,
+  const ps = new PermissionSet(resourceUrl, aclUrl, isContainer,
     { rdf, graph: parsedAclGraph, webClient: mockWebClient })
   let serializedGraph
   ps.serialize()
@@ -354,7 +353,7 @@ test('PermissionSet save() test', t => {
 
 test('PermissionSet save() no aclUrl test', t => {
   let nullAclUrl
-  let ps = new PermissionSet(resourceUrl, nullAclUrl, false,
+  const ps = new PermissionSet(resourceUrl, nullAclUrl, false,
     { rdf, graph: parsedAclGraph })
   ps.save()
     .then(() => {
@@ -368,7 +367,7 @@ test('PermissionSet save() no aclUrl test', t => {
 
 test('PermissionSet save() no web client test', t => {
   let nullAclUrl
-  let ps = new PermissionSet(resourceUrl, aclUrl, false,
+  const ps = new PermissionSet(resourceUrl, aclUrl, false,
     { rdf, graph: parsedAclGraph })
   ps.save()
     .then(() => {

@@ -9,13 +9,13 @@ const VCARD = $rdf.Namespace('http://www.w3.org/2006/vcard/ns#')
 let _logger
 
 function publisherTrustedApp (kb, doc, aclDoc, modesRequired, origin, docAuths) {
-  let app = $rdf.sym(origin)
-  let appAuths = docAuths.filter(auth => kb.holds(auth, ACL('mode'), ACL('Control'), aclDoc))
-  let owners = appAuths.map(auth => kb.each(auth, ACL('agent'))).flat() //  owners
-  let relevant = owners.map(owner => kb.each(owner, ACL('trust'), null, owner.doc()).filter(
+  const app = $rdf.sym(origin)
+  const appAuths = docAuths.filter(auth => kb.holds(auth, ACL('mode'), ACL('Control'), aclDoc))
+  const owners = appAuths.map(auth => kb.each(auth, ACL('agent'))).flat() //  owners
+  const relevant = owners.map(owner => kb.each(owner, ACL('trust'), null, owner.doc()).filter(
     ta => kb.holds(ta, ACL('trustedApp'), app, owner.doc()))).flat() // ta's
-  let modesOK = relevant.map(ta => kb.each(ta, ACL('mode'))).flat().map(m => m.uri)
-  let modesRequiredURIs = modesRequired.map(m => m.uri)
+  const modesOK = relevant.map(ta => kb.each(ta, ACL('mode'))).flat().map(m => m.uri)
+  const modesRequiredURIs = modesRequired.map(m => m.uri)
   modesRequiredURIs.every(uri => modesOK.includes(uri))
   // modesRequired.every(mode => appAuths.some(auth => kb.holds(auth, ACL('mode'), mode, aclDoc)))
 }
@@ -26,7 +26,7 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
   let ok = false
   log('accessDenied: modeURIorReasons: ' + JSON.stringify(Array.from(modeURIorReasons)))
   modesRequired.forEach(mode => {
-    log(` checking ` + mode)
+    log(' checking ' + mode)
     if (modeURIorReasons.has(mode.uri)) {
       log('  Mode required and allowed:' + mode)
     } else if (mode.sameTerm(ACL('Append')) && modeURIorReasons.has(ACL('Write').uri)) {
@@ -76,7 +76,7 @@ async function getTrustedModesForOrigin (kb, doc, directory, aclDoc, origin, fet
   } catch (e) {
     log('error checking owner profiles', e.message)
   }
-  let trustedModes = []
+  const trustedModes = []
   try {
     result.map(ownerResults => ownerResults.map(entry => {
       trustedModes.push(entry['?mode'])
@@ -130,7 +130,7 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
   function agentOrGroupOK (auth, agent) {
     log(`   Checking auth ${auth} with agent ${agent}`)
     if (!agent) {
-      log(`    Agent or group: Fail: not public and not logged on.`)
+      log('    Agent or group: Fail: not public and not logged on.')
       return false
     }
     if (kb.holds(auth, ACL('agentClass'), ACL('AuthenticatedAgent'), aclDoc)) {
@@ -156,7 +156,7 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
 
   function agentAndAppFail (auth) {
     if (kb.holds(auth, ACL('agentClass'), FOAF('Agent'), aclDoc)) {
-      log(`    Agent or group: Ok, its public.`)
+      log('    Agent or group: Ok, its public.')
       return false
     }
     if (!agentOrGroupOK(auth, agent)) {
@@ -182,7 +182,7 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
   var modeURIorReasons = new Set()
 
   auths.forEach(auth => {
-    let agentAndAppStatus = agentAndAppFail(auth)
+    const agentAndAppStatus = agentAndAppFail(auth)
     if (agentAndAppStatus) {
       log('      Check failed: ' + agentAndAppStatus)
       modeURIorReasons.add(agentAndAppStatus)
