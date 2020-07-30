@@ -53,6 +53,8 @@
     "babel-cli": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "sinon": "^9.0.2",
+    "solid-auth-cli": "^1.0.14",
+    "solid-auth-client": "^2.4.1",
     "standard": "^14.3.4",
     "tape": "^5.0.1"
   },
