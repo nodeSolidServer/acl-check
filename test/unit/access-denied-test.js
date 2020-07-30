@@ -19,9 +19,9 @@ const malory = $rdf.sym('https://someone.else.example.com/')
 
 // Append access implied by Write acecss
 test('aclCheck accessDenied() test - Append access implied by Write acecss', t => {
-  let resource = $rdf.sym('https://alice.example.com/docs/file1')
-  let aclUrl = 'https://alice.example.com/docs/.acl'
-  let aclDoc = $rdf.sym(aclUrl)
+  const resource = $rdf.sym('https://alice.example.com/docs/file1')
+  const aclUrl = 'https://alice.example.com/docs/.acl'
+  const aclDoc = $rdf.sym(aclUrl)
 
   const store = $rdf.graph() // Quad store
   const ACLtext = prefixes +
@@ -34,7 +34,7 @@ test('aclCheck accessDenied() test - Append access implied by Write acecss', t =
 
   const agent = alice
   const directory = null
-  const modesRequired = [ ACL('Append')]
+  const modesRequired = [ACL('Append')]
   const trustedOrigins = null
   const origin = null
 
@@ -45,9 +45,9 @@ test('aclCheck accessDenied() test - Append access implied by Write acecss', t =
 
 // Straight ACL access test
 test('acl-check accessDenied() test - accessTo', function (t) {
-  let container = $rdf.sym('https://alice.example.com/docs/')
-  let containerAclUrl = 'https://alice.example.com/docs/.acl'
-  let containerAcl = $rdf.sym(containerAclUrl)
+  const container = $rdf.sym('https://alice.example.com/docs/')
+  const containerAclUrl = 'https://alice.example.com/docs/.acl'
+  const containerAcl = $rdf.sym(containerAclUrl)
 
   const store = $rdf.graph() // Quad store
   const ACLtext = prefixes +
@@ -58,7 +58,7 @@ test('acl-check accessDenied() test - accessTo', function (t) {
   `
   $rdf.parse(ACLtext, store, containerAclUrl, 'text/turtle')
 
-  var result = aclLogic.accessDenied(store, container, null, containerAcl, bob, [ ACL('Write')])
+  var result = aclLogic.accessDenied(store, container, null, containerAcl, bob, [ACL('Write')])
   t.ok(result, 'Bob Should not have access')
   t.equal(result, 'User Unauthorized', 'Correct reason')
 
@@ -67,10 +67,10 @@ test('acl-check accessDenied() test - accessTo', function (t) {
 
 // Inheriting permissions from directory defaults
 test('acl-check accessDenied() test - default/inherited', function (t) {
-  let container = $rdf.sym('https://alice.example.com/docs/')
-  let containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
-  let file1 = $rdf.sym('https://alice.example.com/docs/file1')
-  let file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
+  const container = $rdf.sym('https://alice.example.com/docs/')
+  const containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
+  const file1 = $rdf.sym('https://alice.example.com/docs/file1')
+  const file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
   var result
   const store = $rdf.graph()
   /*
@@ -81,33 +81,31 @@ test('acl-check accessDenied() test - default/inherited', function (t) {
 `
   $rdf.parse(ACLtext, store, containerAcl.uri, 'text/turtle')
 */
-  let containerAclText = prefixes + ` <#auth> a acl:Authorization;
+  const containerAclText = prefixes + ` <#auth> a acl:Authorization;
       acl:mode acl:Read;
       acl:agent alice:me;
       acl:default <${container.uri}> .
 `
   $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
 
-  result = !aclLogic.accessDenied(store, file1, container, containerAcl, alice, [ ACL('Read')])
+  result = !aclLogic.accessDenied(store, file1, container, containerAcl, alice, [ACL('Read')])
   t.ok(result, 'Alice should have Read access inherited')
 
-  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Read')])
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ACL('Read')])
   t.ok(result, 'Alice should have Read access inherited 2')
 
-  result = aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Write')])
+  result = aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ACL('Write')])
   t.ok(result, 'Alice should NOT have Write access inherited')
 
   t.end()
 })
 
-
-
 // Inheriting permissions from directory defaults
 test('acl-check accessDenied() test - default/inherited', function (t) {
-  let container = $rdf.sym('https://alice.example.com/docs/')
-  let containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
-  let file1 = $rdf.sym('https://alice.example.com/docs/file1')
-  let file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
+  const container = $rdf.sym('https://alice.example.com/docs/')
+  const containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
+  const file1 = $rdf.sym('https://alice.example.com/docs/file1')
+  const file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
   const origin = $rdf.sym('https://apps.example.com')
   const malorigin = $rdf.sym('https://mallory.example.com')
   const trustedOrigins = null
@@ -121,7 +119,7 @@ test('acl-check accessDenied() test - default/inherited', function (t) {
     `
   $rdf.parse(ACLtext, store, containerAcl.uri, 'text/turtle')
 */
-  let containerAclText = prefixes + ` <#auth> a acl:Authorization;
+  const containerAclText = prefixes + ` <#auth> a acl:Authorization;
       acl:mode acl:Read;
       acl:agentClass foaf:Agent;
       acl:default <${container.uri}> .
@@ -129,25 +127,25 @@ test('acl-check accessDenied() test - default/inherited', function (t) {
   $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
   console.log('@@' + containerAclText + '@@@')
 
-  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Read')])
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ACL('Read')])
   t.ok(result, 'Alice should have read access - Public')
 
-  result = !aclLogic.accessDenied(store, file2, container, containerAcl, bob, [ ACL('Read')])
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, bob, [ACL('Read')])
   t.ok(result, 'Bob should have read access too - Public')
 
-  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Read')], origin, trustedOrigins)
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ACL('Read')], origin, trustedOrigins)
   t.ok(result, 'Alice should have read access regardless of origin - Public')
 
-  result = !aclLogic.accessDenied(store, file2, container, containerAcl, bob, [ ACL('Read')], origin, trustedOrigins)
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, bob, [ACL('Read')], origin, trustedOrigins)
   t.ok(result, 'Bob should have read access too regardless of origin - Public')
 
-  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Read')], malorigin, trustedOrigins)
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ACL('Read')], malorigin, trustedOrigins)
   t.ok(result, 'Alice should have read access even with wrong origin - Public')
 
-  result = !aclLogic.accessDenied(store, file2, container, containerAcl, bob, [ ACL('Read')], malorigin, trustedOrigins)
+  result = !aclLogic.accessDenied(store, file2, container, containerAcl, bob, [ACL('Read')], malorigin, trustedOrigins)
   t.ok(result, 'Bob should have read access too even with wrong origin - Public')
 
-  result = aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Write')])
+  result = aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ACL('Write')])
   t.ok(result, 'Alice should NOT have write access inherited  - Public')
 
   t.end()
@@ -155,9 +153,9 @@ test('acl-check accessDenied() test - default/inherited', function (t) {
 
 // Straight ACL access test
 test('acl-check accessDenied() test - accessTo', function (t) {
-  let container = $rdf.sym('https://alice.example.com/docs/')
-  let containerAclUrl = 'https://alice.example.com/docs/.acl'
-  let containerAcl = $rdf.sym(containerAclUrl)
+  const container = $rdf.sym('https://alice.example.com/docs/')
+  const containerAclUrl = 'https://alice.example.com/docs/.acl'
+  const containerAcl = $rdf.sym(containerAclUrl)
 
   const store = $rdf.graph() // Quad store
   const ACLtext = prefixes +
@@ -168,13 +166,13 @@ test('acl-check accessDenied() test - accessTo', function (t) {
   `
   $rdf.parse(ACLtext, store, containerAclUrl, 'text/turtle')
 
-  var result = aclLogic.accessDenied(store, container, null, containerAcl, null, [ ACL('Read')])
+  var result = aclLogic.accessDenied(store, container, null, containerAcl, null, [ACL('Read')])
   t.ok(result, 'Anonymous should NOT have Read access to public thing - AuthenticatedAgent')
 
-  result = aclLogic.accessDenied(store, container, null, containerAcl, null, [ ACL('Write')])
+  result = aclLogic.accessDenied(store, container, null, containerAcl, null, [ACL('Write')])
   t.ok(result, 'Anonymous should NOT have Write access - AuthenticatedAgent')
 
-  result = !aclLogic.accessDenied(store, container, null, containerAcl, bob, [ ACL('Write')])
+  result = !aclLogic.accessDenied(store, container, null, containerAcl, bob, [ACL('Write')])
   t.ok(result, 'Bob should have Write access to public write - AuthenticatedAgent')
 
   t.end()
@@ -182,38 +180,37 @@ test('acl-check accessDenied() test - accessTo', function (t) {
 
 // Inheriting permissions from directory defaults
 test('acl-check accessDenied() test - default/inherited', function (t) {
-  let container = $rdf.sym('https://alice.example.com/docs/')
-  let containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
-  let file1 = $rdf.sym('https://alice.example.com/docs/file1')
-  let file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
+  const container = $rdf.sym('https://alice.example.com/docs/')
+  const containerAcl = $rdf.sym('https://alice.example.com/docs/.acl')
+  const file1 = $rdf.sym('https://alice.example.com/docs/file1')
+  const file2 = $rdf.sym('https://alice.example.com/docs/stuff/file2')
   var result
   const store = $rdf.graph()
-  let ACLtext = prefixes + ` <#auth> a acl:Authorization;
+  const ACLtext = prefixes + ` <#auth> a acl:Authorization;
     acl:mode acl:Read;
     acl:agent bob:me;
     acl:accessTo <${file1.uri}> .
 `
   $rdf.parse(ACLtext, store, containerAcl.uri, 'text/turtle')
 
-  let containerAclText = prefixes + ` <#auth> a acl:Authorization;
+  const containerAclText = prefixes + ` <#auth> a acl:Authorization;
       acl:mode acl:Read;
       acl:agentClass acl:AuthenticatedAgent;
       acl:default <${container.uri}> .
 `
   $rdf.parse(containerAclText, store, containerAcl.uri, 'text/turtle')
 
-  result = aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ ACL('Write')])
+  result = aclLogic.accessDenied(store, file2, container, containerAcl, alice, [ACL('Write')])
   t.ok(result, 'Alice should NOT have write access inherited  - AuthenticatedAgent')
 
   t.end()
 })
 
-
 // Append access implied by Write acecss
 test('aclCheck accessDenied() test - Append access implied by Write acecss', t => {
-  let resource = $rdf.sym('https://alice.example.com/docs/file1')
-  let aclUrl = 'https://alice.example.com/docs/.acl'
-  let aclDoc = $rdf.sym(aclUrl)
+  const resource = $rdf.sym('https://alice.example.com/docs/file1')
+  const aclUrl = 'https://alice.example.com/docs/.acl'
+  const aclDoc = $rdf.sym(aclUrl)
 
   const origin = $rdf.sym('https://apps.example.com')
   const malorigin = $rdf.sym('https://mallory.example.com')
@@ -229,9 +226,8 @@ test('aclCheck accessDenied() test - Append access implied by Write acecss', t =
 
   const agent = alice
   const directory = null
-  const modesRequired = [ ACL('Append') ]
+  const modesRequired = [ACL('Append')]
   const trustedOrigins = null
-
 
   var result = !aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
   t.ok(result, 'App should have Append access implied by Write access with authorized origin')
@@ -244,9 +240,9 @@ test('aclCheck accessDenied() test - Append access implied by Write acecss', t =
 })
 
 test('aclCheck accessDenied() test - Read, Write and Append', t => {
-  let resource = $rdf.sym('https://alice.example.com/docs/file1')
-  let aclUrl = 'https://alice.example.com/docs/.acl'
-  let aclDoc = $rdf.sym(aclUrl)
+  const resource = $rdf.sym('https://alice.example.com/docs/file1')
+  const aclUrl = 'https://alice.example.com/docs/.acl'
+  const aclDoc = $rdf.sym(aclUrl)
 
   const origin = $rdf.sym('https://apps.example.com')
   const malorigin = $rdf.sym('https://mallory.example.com')
@@ -262,9 +258,8 @@ test('aclCheck accessDenied() test - Read, Write and Append', t => {
 
   const agent = alice
   const directory = null
-  const modesRequired = [ ACL('Append'), ACL('Read'), ACL('Write') ]
+  const modesRequired = [ACL('Append'), ACL('Read'), ACL('Write')]
   const trustedOrigins = null
-
 
   var result = !aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
   t.ok(result, 'App should have  access with authorized origin')
@@ -289,9 +284,9 @@ test('aclCheck accessDenied() test - Read, Write and Append', t => {
 })
 
 test('aclCheck accessDenied() test - Various access rules', t => {
-  let resource = $rdf.sym('https://alice.example.com/docs/file1')
-  let aclUrl = 'https://alice.example.com/docs/.acl'
-  let aclDoc = $rdf.sym(aclUrl)
+  const resource = $rdf.sym('https://alice.example.com/docs/file1')
+  const aclUrl = 'https://alice.example.com/docs/.acl'
+  const aclDoc = $rdf.sym(aclUrl)
 
   const origin = $rdf.sym('https://apps.example.com')
   const malorigin = $rdf.sym('https://mallory.example.com')
@@ -307,9 +302,8 @@ test('aclCheck accessDenied() test - Various access rules', t => {
 
   const agent = alice
   const directory = null
-  var modesRequired = [ ACL('Read') ]
+  var modesRequired = [ACL('Read')]
   const trustedOrigins = null
-
 
   var result = !aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
   t.ok(result, 'App should have Write access with authorized origin, only fulfilled modes')
@@ -330,7 +324,7 @@ test('aclCheck accessDenied() test - Various access rules', t => {
   t.ok(result, 'Mallorys app should not have Write access with false origin, only fulfilled modes')
   t.equal(result, 'Origin Unauthorized', 'Correct reason')
 
-  modesRequired = [ ACL('Write') ]
+  modesRequired = [ACL('Write')]
 
   result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, malorigin, trustedOrigins)
   t.ok(result, 'Mallorys app should not have Write access with false origin, invalid modes')
@@ -348,7 +342,7 @@ test('aclCheck accessDenied() test - Various access rules', t => {
   t.ok(result, 'Mallorys app should not have Write access with false origin, invalid modes')
   t.equal(result, 'Origin Unauthorized', 'Correct reason')
 
-  modesRequired = [ ACL('Write'), ACL('Read') ]
+  modesRequired = [ACL('Write'), ACL('Read')]
 
   result = aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)
   t.ok(result, 'Alice should not have Read and Write access with authorized origin, both modes')
@@ -374,9 +368,9 @@ test('aclCheck accessDenied() test - Various access rules', t => {
 })
 
 test('aclCheck accessDenied() test - With trustedOrigins', t => {
-  let resource = $rdf.sym('https://alice.example.com/docs/file1')
-  let aclUrl = 'https://alice.example.com/docs/.acl'
-  let aclDoc = $rdf.sym(aclUrl)
+  const resource = $rdf.sym('https://alice.example.com/docs/file1')
+  const aclUrl = 'https://alice.example.com/docs/.acl'
+  const aclDoc = $rdf.sym(aclUrl)
 
   const origin = $rdf.sym('https://apps.example.com')
   const malorigin = $rdf.sym('https://mallory.example.com')
@@ -392,7 +386,7 @@ test('aclCheck accessDenied() test - With trustedOrigins', t => {
 
   const agent = alice
   const directory = null
-  var modesRequired = [ ACL('Read') ]
+  var modesRequired = [ACL('Read')]
   const trustedOrigins = [$rdf.sym('https://apps.example.com')]
 
   var result = !aclLogic.accessDenied(store, resource, directory, aclDoc, agent, modesRequired, origin, trustedOrigins)

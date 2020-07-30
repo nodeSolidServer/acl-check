@@ -5,7 +5,7 @@ const rdf = require('rdflib')
 const PermissionSet = require('../../src/permission-set')
 const SolidResponse = require('solid-web-client/lib/models/response')
 
-const acls = require('../../src/index')  // solid-permissions module
+const acls = require('../../src/index') // solid-permissions module
 
 const resourceUrl = 'https://example.com/resource1'
 const webId = 'https://example.com/#me'
@@ -19,14 +19,14 @@ const aclSource = `@prefix acl: <http://www.w3.org/ns/auth/acl#>.
 
 const mockWebClient = {
   head: (url) => {
-    let response = new SolidResponse()
+    const response = new SolidResponse()
     response.rdf = rdf
     response.url = url
     response.acl = 'resource1.acl'
     return Promise.resolve(response)
   },
   get: (url) => {
-    let response = new SolidResponse()
+    const response = new SolidResponse()
     response.rdf = rdf
     response.url = url
     response.xhr = {

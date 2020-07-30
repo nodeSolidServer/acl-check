@@ -11,7 +11,7 @@ const agentWebId = 'https://bob.example.com/profile/card#me'
 const groupWebId = 'https://devteam.example.com/something'
 
 test('a new Authorization()', function (t) {
-  let auth = new Authorization()
+  const auth = new Authorization()
   t.notOk(auth.isAgent())
   t.notOk(auth.isGroup())
   t.notOk(auth.isPublic())
@@ -28,7 +28,7 @@ test('a new Authorization()', function (t) {
 })
 
 test('a new Authorization for a container', function (t) {
-  let auth = new Authorization(resourceUrl, acl.INHERIT)
+  const auth = new Authorization(resourceUrl, acl.INHERIT)
   t.equal(auth.resourceUrl, resourceUrl)
   t.notOk(auth.webId())
   t.notOk(auth.allowsRead())
@@ -42,14 +42,14 @@ test('a new Authorization for a container', function (t) {
 })
 
 test('Authorization allowsMode() test', function (t) {
-  let auth = new Authorization()
+  const auth = new Authorization()
   auth.addMode(acl.WRITE)
   t.ok(auth.allowsMode(acl.WRITE), 'auth.allowsMode() should work')
   t.end()
 })
 
 test('an Authorization allows editing permission modes', function (t) {
-  let auth = new Authorization()
+  const auth = new Authorization()
   auth.addMode(acl.CONTROL)
   t.notOk(auth.isEmpty(), 'Adding an access mode means no longer empty')
   t.ok(auth.allowsControl(), 'Adding Control mode failed')
@@ -80,7 +80,7 @@ test('an Authorization allows editing permission modes', function (t) {
 })
 
 test('an Authorization can add or remove multiple modes', function (t) {
-  let auth = new Authorization()
+  const auth = new Authorization()
   auth.addMode([acl.READ, acl.WRITE, acl.CONTROL])
   t.ok(auth.allowsRead() && auth.allowsWrite() && auth.allowsControl())
   auth.removeMode([acl.WRITE, acl.READ])
@@ -90,7 +90,7 @@ test('an Authorization can add or remove multiple modes', function (t) {
 })
 
 test('an Authorization can only have either an agent or a group', function (t) {
-  let auth1 = new Authorization()
+  const auth1 = new Authorization()
   auth1.setAgent(agentWebId)
   t.equal(auth1.agent, agentWebId)
   // Try to set a group while an agent already set
@@ -98,7 +98,7 @@ test('an Authorization can only have either an agent or a group', function (t) {
     auth1.setGroup(groupWebId)
   }, 'Trying to set a group for an auth with an agent should throw an error')
   // Now try the other way -- setting an agent while a group is set
-  let auth2 = new Authorization()
+  const auth2 = new Authorization()
   auth2.setGroup(groupWebId)
   t.equal(auth2.group, groupWebId)
   t.throws(function () {
@@ -161,7 +161,7 @@ test('an webId is either the agent or the group id', function (t) {
 })
 
 test('hashFragment() on an incomplete authorization should fail', function (t) {
-  let auth = new Authorization()
+  const auth = new Authorization()
   t.throws(function () {
     auth.hashFragment()
   }, 'hashFragment() should fail if both webId AND resourceUrl are missing')
@@ -173,7 +173,7 @@ test('hashFragment() on an incomplete authorization should fail', function (t) {
 })
 
 test('Authorization.isValid() test', function (t) {
-  let auth = new Authorization()
+  const auth = new Authorization()
   t.notOk(auth.isValid(), 'An empty authorization should not be valid')
   auth.resourceUrl = resourceUrl
   t.notOk(auth.isValid())
@@ -188,8 +188,8 @@ test('Authorization.isValid() test', function (t) {
 })
 
 test('Authorization origins test', function (t) {
-  let auth = new Authorization()
-  let origin = 'https://example.com/'
+  const auth = new Authorization()
+  const origin = 'https://example.com/'
   auth.addOrigin(origin)
   t.deepEqual(auth.allOrigins(), [origin])
   t.ok(auth.allowsOrigin(origin))
@@ -200,15 +200,15 @@ test('Authorization origins test', function (t) {
 })
 
 test('Comparing Authorizations test 1', function (t) {
-  let auth1 = new Authorization()
-  let auth2 = new Authorization()
+  const auth1 = new Authorization()
+  const auth2 = new Authorization()
   t.ok(auth1.equals(auth2))
   t.end()
 })
 
 test('Comparing Authorizations test 2', function (t) {
-  let auth1 = new Authorization(resourceUrl)
-  let auth2 = new Authorization()
+  const auth1 = new Authorization(resourceUrl)
+  const auth2 = new Authorization()
   t.notOk(auth1.equals(auth2))
   auth2.resourceUrl = resourceUrl
   t.ok(auth1.equals(auth2))
@@ -216,9 +216,9 @@ test('Comparing Authorizations test 2', function (t) {
 })
 
 test('Comparing Authorizations test 3', function (t) {
-  let auth1 = new Authorization()
+  const auth1 = new Authorization()
   auth1.setAgent(agentWebId)
-  let auth2 = new Authorization()
+  const auth2 = new Authorization()
   t.notOk(auth1.equals(auth2))
   auth2.setAgent(agentWebId)
   t.ok(auth1.equals(auth2))
@@ -226,9 +226,9 @@ test('Comparing Authorizations test 3', function (t) {
 })
 
 test('Comparing Authorizations test 4', function (t) {
-  let auth1 = new Authorization()
+  const auth1 = new Authorization()
   auth1.addMode([acl.READ, acl.WRITE])
-  let auth2 = new Authorization()
+  const auth2 = new Authorization()
   t.notOk(auth1.equals(auth2))
   auth2.addMode([acl.READ, acl.WRITE])
   t.ok(auth1.equals(auth2))
@@ -236,8 +236,8 @@ test('Comparing Authorizations test 4', function (t) {
 })
 
 test('Comparing Authorizations test 5', function (t) {
-  let auth1 = new Authorization(resourceUrl, acl.INHERIT)
-  let auth2 = new Authorization(resourceUrl)
+  const auth1 = new Authorization(resourceUrl, acl.INHERIT)
+  const auth2 = new Authorization(resourceUrl)
   t.notOk(auth1.equals(auth2))
   auth2.inherited = acl.INHERIT
   t.ok(auth1.equals(auth2))
@@ -245,9 +245,9 @@ test('Comparing Authorizations test 5', function (t) {
 })
 
 test('Comparing Authorizations test 6', function (t) {
-  let auth1 = new Authorization()
+  const auth1 = new Authorization()
   auth1.addMailTo('alice@example.com')
-  let auth2 = new Authorization()
+  const auth2 = new Authorization()
   t.notOk(auth1.equals(auth2))
   auth2.addMailTo('alice@example.com')
   t.ok(auth1.equals(auth2))
@@ -255,10 +255,10 @@ test('Comparing Authorizations test 6', function (t) {
 })
 
 test('Comparing Authorizations test 7', function (t) {
-  let origin = 'https://example.com/'
-  let auth1 = new Authorization()
+  const origin = 'https://example.com/'
+  const auth1 = new Authorization()
   auth1.addOrigin(origin)
-  let auth2 = new Authorization()
+  const auth2 = new Authorization()
   t.notOk(auth1.equals(auth2))
   auth2.addOrigin(origin)
   t.ok(auth1.equals(auth2))
@@ -266,9 +266,9 @@ test('Comparing Authorizations test 7', function (t) {
 })
 
 test('Authorization.clone() test', function (t) {
-  let auth1 = new Authorization(resourceUrl, acl.INHERIT)
+  const auth1 = new Authorization(resourceUrl, acl.INHERIT)
   auth1.addMode([acl.READ, acl.WRITE])
-  let auth2 = auth1.clone()
+  const auth2 = auth1.clone()
   t.ok(auth1.equals(auth2))
   t.end()
 })
