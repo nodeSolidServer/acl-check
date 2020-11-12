@@ -14,7 +14,7 @@
     "preversion": "npm test",
     "postversion": "git push --follow-tags",
     "prepublish": "npm test && npm run build",
-    "standard": "standard *.js src/*.js",
+    "standard": "standard src/*.js",
     "tape": "tape test/unit/check-access-test.js test/unit/access-denied-test.js test/unit/configure-logger-test.js test/unit/get-trusted-modes-for-origin-test.js",
     "test": "npm run standard && npm run tape"
   },
@@ -52,10 +52,10 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
-    "sinon": "^9.2.0",
+    "sinon": "^9.2.1",
     "solid-auth-cli": "^1.0.15",
-    "solid-auth-client": "^2.5.2",
-    "standard": "^15.0.0",
+    "solid-auth-client": "^2.5.3",
+    "standard": "^16.0.2",
     "tape": "^5.0.1"
   },
   "standard": {

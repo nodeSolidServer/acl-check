@@ -47,7 +47,7 @@ function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin,
 async function getTrustedModesForOrigin (kb, doc, directory, aclDoc, origin, fetch) {
   // FIXME: this is duplicate code from the modesAllowed function, will refactor,
   // see https://github.com/solid/acl-check/issues/22
-  var auths
+  let auths
   if (!directory) { // Normal case, ACL for a file
     auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
     log(`   ${auths.length} direct authentications about ${doc}`)
@@ -78,7 +78,7 @@ async function getTrustedModesForOrigin (kb, doc, directory, aclDoc, origin, fet
   }
   const trustedModes = []
   try {
-    result.map(ownerResults => ownerResults.map(entry => {
+    result.forEach(ownerResults => ownerResults.map(entry => {
       trustedModes.push(entry['?mode'])
     }))
   } catch (e) {
@@ -112,7 +112,7 @@ function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, 
 }
 
 function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins, originTrustedModes = []) {
-  var auths
+  let auths
   if (!directory) { // Normal case, ACL for a file
     auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
     log(`   ${auths.length} direct authentications about ${doc}`)
@@ -179,7 +179,7 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
     return 'Origin Unauthorized' // @@ look for other trusted apps
   }
 
-  var modeURIorReasons = new Set()
+  const modeURIorReasons = new Set()
 
   auths.forEach(auth => {
     const agentAndAppStatus = agentAndAppFail(auth)
