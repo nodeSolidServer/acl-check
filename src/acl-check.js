@@ -78,7 +78,7 @@ async function getTrustedModesForOrigin (kb, doc, directory, aclDoc, origin, fet
   }
   const trustedModes = []
   try {
-    result.forEach(ownerResults => ownerResults.map(entry => {
+    result.forEach(ownerResults => ownerResults.forEach(entry => {
       trustedModes.push(entry['?mode'])
     }))
   } catch (e) {
