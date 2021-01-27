@@ -46,17 +46,17 @@
   },
   "homepage": "https://github.com/solid/acl-check",
   "dependencies": {
-    "rdflib": "^2.1.3",
+    "rdflib": "^2.1.7",
     "solid-namespace": "^0.5.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
-    "sinon": "^9.2.1",
+    "sinon": "^9.2.4",
     "solid-auth-cli": "^1.0.15",
-    "solid-auth-client": "^2.5.4",
+    "solid-auth-client": "^2.5.5",
     "standard": "^16.0.3",
-    "tape": "^5.0.1"
+    "tape": "^5.1.1"
   },
   "standard": {
     "globals": []
