@@ -188,7 +188,8 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
       modeURIorReasons.add(agentAndAppStatus)
     } else {
       let modes = kb.each(auth, ACL('mode'), null, aclDoc)
-      if (originTrustedModes && originTrustedModes.length > 0) {
+      // If there IS an origin, check that those modes are allowed to it too
+      if (origin && originTrustedModes && originTrustedModes.length > 0) {
         modes = modes.filter(mode => nodesIncludeNode(originTrustedModes, mode))
       }
       modes.forEach(mode => {

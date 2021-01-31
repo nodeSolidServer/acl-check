@@ -427,5 +427,10 @@ test('aclCheck accessDenied() test - with use of originTrustedModes', t => {
   const controlModeResult = aclLogic.accessDenied(aclStore, resource, directory, aclDoc, agent, controlModeRequired, origin, trustedOrigins, originTrustedModes)
   t.ok(controlModeResult, 'All Required Access Modes Not Granted', 'Correct reason')
 
+  // See https://github.com/solid/acl-check/issues/36
+  const controlModeRequired2 = [ACL('Control')]
+  const controlModeResult2 = aclLogic.accessDenied(aclStore, resource, directory, aclDoc, agent, controlModeRequired2, null, trustedOrigins, originTrustedModes)
+  t.ok(!controlModeResult2, 'Should get access irrespective of origin modes modes when No origin', 'Correct reason 2')
+
   t.end()
 })
