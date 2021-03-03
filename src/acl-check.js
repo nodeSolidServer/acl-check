@@ -20,9 +20,9 @@ function publisherTrustedApp (kb, doc, aclDoc, modesRequired, origin, docAuths) 
   // modesRequired.every(mode => appAuths.some(auth => kb.holds(auth, ACL('mode'), mode, aclDoc)))
 }
 
-function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins, originTrustedModes = []) {
+function accessDenied (kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins, originTrustedModes = [], hasPaid) {
   log(`accessDenied: checking access to ${doc} by ${agent} and origin ${origin}`)
-  const modeURIorReasons = modesAllowed(kb, doc, directory, aclDoc, agent, origin, trustedOrigins, originTrustedModes)
+  const modeURIorReasons = modesAllowed(kb, doc, directory, aclDoc, agent, origin, trustedOrigins, originTrustedModes, hasPaid)
   let ok = false
   log('accessDenied: modeURIorReasons: ' + JSON.stringify(Array.from(modeURIorReasons)))
   modesRequired.forEach(mode => {
@@ -111,7 +111,7 @@ function checkAccess (kb, doc, directory, aclDoc, agent, modesRequired, origin, 
   return !accessDenied(kb, doc, directory, aclDoc, agent, modesRequired, origin, trustedOrigins, originTrustedModes)
 }
 
-function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins, originTrustedModes = []) {
+function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins, originTrustedModes = [], hasPaid) {
   let auths
   if (!directory) { // Normal case, ACL for a file
     auths = kb.each(null, ACL('accessTo'), doc, aclDoc)
@@ -127,7 +127,7 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
     log(`  modesAllowed: Origin ${origin} is trusted.`)
   }
 
-  function agentOrGroupOK (auth, agent) {
+  function agentOrGroupOK (auth, agent, hasPaid) {
     log(`   Checking auth ${auth} with agent ${agent}`)
     if (!agent) {
       log('    Agent or group: Fail: not public and not logged on.')
@@ -146,6 +146,20 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
       log('    Agent is member of group which has access.')
       return true
     }
+    // See https://github.com/solid/monetization-tests/issues/2
+    if (kb.holds(auth, ACL('agentClass'), ACL('PayingAgent'), aclDoc)) {
+      if (hasPaid && hasPaid(agent)) {
+        log('    PayingAgent: logged in and has paid, looks good')
+        return true
+      } else {
+        // FIXME: this will be logged if an Authorization exists for
+        // which paying would help it apply, but even then we don't know
+        // if that Authorization would give all the required modes and origins,
+        // and also maybe the agent already gets sufficient access through one
+        // of the other Authorizations in the ACL doc.
+        log(`    PayingAgent: logged in but has not paid, and paying would make <${auth.value}> apply.`)
+      }
+    }
     log('    Agent or group access fails for this authentication.')
     return false
   } // Agent or group
@@ -154,12 +168,12 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
     return kb.holds(auth, ACL('origin'), origin, aclDoc)
   }
 
-  function agentAndAppFail (auth) {
+  function agentAndAppFail (auth, hasPaid) {
     if (kb.holds(auth, ACL('agentClass'), FOAF('Agent'), aclDoc)) {
       log('    Agent or group: Ok, its public.')
       return false
     }
-    if (!agentOrGroupOK(auth, agent)) {
+    if (!agentOrGroupOK(auth, agent, hasPaid)) {
       log('     The agent/group check fails')
       return 'User Unauthorized'
     }
@@ -182,7 +196,7 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
   const modeURIorReasons = new Set()
 
   auths.forEach(auth => {
-    const agentAndAppStatus = agentAndAppFail(auth)
+    const agentAndAppStatus = agentAndAppFail(auth, hasPaid)
     if (agentAndAppStatus) {
       log('      Check failed: ' + agentAndAppStatus)
       modeURIorReasons.add(agentAndAppStatus)
