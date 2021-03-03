@@ -174,12 +174,12 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
       log('    Agent or group: Ok, its public.')
       return false
     }
-    const agentOrGroupCheckResult = agentOrGroupCheck(auth, agent, hasPaid);
-    if (agentOrGroupCheckResult == 'User Unauthorized') {
+    const agentOrGroupCheckResult = agentOrGroupCheck(auth, agent, hasPaid)
+    if (agentOrGroupCheckResult === 'User Unauthorized') {
       log('     The agent/group check fails')
       return 'User Unauthorized'
     }
-    if (agentOrGroupCheckResult == 'Paying Would Help') {
+    if (agentOrGroupCheckResult === 'Paying Would Help') {
       log('     Paying would help')
       return 'Paying Would Help'
     }
