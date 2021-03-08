@@ -127,11 +127,11 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
     log(`  modesAllowed: Origin ${origin} is trusted.`)
   }
 
-  function agentOrGroupCheck (auth, agent, hasPaid) {
+  function agentOrGroupOK (auth, agent, hasPaid) {
     log(`   Checking auth ${auth} with agent ${agent}`)
     if (!agent) {
       log('    Agent or group: Fail: not public and not logged on.')
-      return 'User Unauthorized'
+      return false
     }
     if (kb.holds(auth, ACL('agentClass'), ACL('AuthenticatedAgent'), aclDoc)) {
       log('    AuthenticatedAgent: logged in, looks good')
@@ -139,18 +139,18 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
     }
     if (kb.holds(auth, ACL('agent'), agent, aclDoc)) {
       log('    Agent explicitly authenticated.')
-      return 'OK'
+      return true
     }
     if (kb.each(auth, ACL('agentGroup'), null, aclDoc).some(
       group => kb.holds(group, VCARD('hasMember'), agent, group.doc()))) {
       log('    Agent is member of group which has access.')
-      return 'OK'
+      return true
     }
     // See https://github.com/solid/monetization-tests/issues/2
     if (kb.holds(auth, ACL('agentClass'), ACL('PayingAgent'), aclDoc)) {
       if (hasPaid && hasPaid(agent)) {
         log('    PayingAgent: logged in and has paid, looks good')
-        return 'OK'
+        return true
       } else {
         // FIXME: this will be logged if an Authorization exists for
         // which paying would help it apply, but even then we don't know
@@ -158,11 +158,11 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
         // and also maybe the agent already gets sufficient access through one
         // of the other Authorizations in the ACL doc.
         log(`    PayingAgent: logged in but has not paid, and paying would make <${auth.value}> apply.`)
-        return 'Paying Would Help'
+        return false
       }
     }
     log('    Agent or group access fails for this authentication.')
-    return 'User Unauthorized'
+    return false
   } // Agent or group
 
   function originOK (auth, origin) {
@@ -174,17 +174,8 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
       log('    Agent or group: Ok, its public.')
       return false
     }
-    const agentOrGroupCheckResult = agentOrGroupCheck(auth, agent, hasPaid)
-    if (agentOrGroupCheckResult === 'User Unauthorized') {
+    if (!agentOrGroupOK(auth, agent, hasPaid)) {
       log('     The agent/group check fails')
-      return 'User Unauthorized'
-    }
-    if (agentOrGroupCheckResult === 'Paying Would Help') {
-      log('     Paying would help')
-      return 'Paying Would Help'
-    }
-    if (agentOrGroupCheckResult !== 'OK') {
-      log('     Unrecognized non-OK agentOrGroupCheckResult')
       return 'User Unauthorized'
     }
 
