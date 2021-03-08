@@ -135,7 +135,7 @@ function modesAllowed (kb, doc, directory, aclDoc, agent, origin, trustedOrigins
     }
     if (kb.holds(auth, ACL('agentClass'), ACL('AuthenticatedAgent'), aclDoc)) {
       log('    AuthenticatedAgent: logged in, looks good')
-      return 'OK'
+      return true
     }
     if (kb.holds(auth, ACL('agent'), agent, aclDoc)) {
       log('    Agent explicitly authenticated.')
